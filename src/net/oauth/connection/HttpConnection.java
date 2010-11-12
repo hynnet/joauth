@@ -1,0 +1,310 @@
+/**
+ * 
+ */
+package net.oauth.connection;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import net.oauth.parameters.QueryKeyValuePair;
+import net.oauth.util.OAuthUtil;
+
+import org.apache.log4j.Logger;
+
+import sun.misc.BASE64Encoder;
+
+/**
+ * @author Buhake Sindi
+ * @version 1.0
+ * @since 29 April 2009
+ *
+ */
+public class HttpConnection {
+	
+	private static final Logger logger = Logger.getLogger(HttpConnection.class);
+	private static final String UNKNOWN_MIME_TYPE="application/x-unknown-mime-type";
+	
+	private boolean enableRead;
+	private boolean enableWrite;
+	private URLConnection connection;
+	private String proxyPassword;
+	private int timeout;
+	private boolean enableLogging;
+	private boolean proxySet = false;
+	private Map<String, String> parameters;
+
+	/**
+	 * 
+	 */
+	public HttpConnection() {
+		// TODO Auto-generated constructor stub
+		setEnableRead(true);
+		setEnableWrite(true);
+		proxyPassword = "";
+		connection = null;
+		enableLogging = false;
+		timeout = 0;
+		parameters = Collections.synchronizedMap(new HashMap<String, String>());
+	}
+
+	/**
+	 * @return the enableRead
+	 */
+	public boolean isEnableRead() {
+		return enableRead;
+	}
+
+	/**
+	 * @param enableRead the enableRead to set
+	 */
+	public void setEnableRead(boolean enableRead) {
+		this.enableRead = enableRead;
+	}
+
+	/**
+	 * @return the enableWrite
+	 */
+	public boolean isEnableWrite() {
+		return enableWrite;
+	}
+
+	/**
+	 * @param enableWrite the enableWrite to set
+	 */
+	public void setEnableWrite(boolean enableWrite) {
+		this.enableWrite = enableWrite;
+	}
+	
+	/**
+	 * @return the timeout
+	 */
+	public int getTimeout() {
+		return timeout;
+	}
+
+	/**
+	 * @param timeout the timeout to set
+	 */
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
+	}
+	
+	/**
+	 * @return the enableLogging
+	 */
+	public boolean isEnableLogging() {
+		return enableLogging;
+	}
+
+	/**
+	 * @param enableLogging the enableLogging to set
+	 */
+	public void setEnableLogging(boolean enableLogging) {
+		this.enableLogging = enableLogging;
+	}
+
+	public void setHttpProxy(String proxyHost, String proxyPort, String proxyUsername, String proxyPassword) {
+		if (!proxySet) {
+			System.getProperties().put("http.proxySet", "true");
+			System.getProperties().put("http.proxyHost", proxyHost);
+			System.getProperties().put("http.proxyPort", proxyPort);
+			System.getProperties().put("https.proxyHost", proxyHost);
+			System.getProperties().put("https.proxyPort", proxyPort);
+			
+			String passw = (!proxyUsername.trim().equals("") ? proxyUsername : "") + ":" + (!proxyPassword.trim().equals("") ? proxyPassword : "");
+			if (!passw.equals(":")) {
+				BASE64Encoder encoder = new BASE64Encoder();
+				this.proxyPassword = encoder.encode(passw.getBytes());
+			}
+			
+			proxySet = true;
+		} 
+	}
+	
+	public void disconnect() {
+		if (this.connection instanceof HttpURLConnection) {
+			((HttpURLConnection)this.connection).disconnect();
+		}
+	}
+	
+	public synchronized void establishConnection(String netPath, String requestMethod) throws IOException {
+		if (this.connection != null) {
+			disconnect();
+			this.connection = null;
+		}
+		
+		String parameterString = OAuthUtil.getQueryString(parameters, new QueryKeyValuePair());
+		netPath += (("GET".equals(requestMethod) && !parameterString.isEmpty()) ? "?" + parameterString : "");
+		doLog(requestMethod + " " + netPath);
+		
+		try {
+			URL url = new URL(netPath);
+			doLog("Creating connection to '" + netPath + "'...");
+			this.connection = url.openConnection();
+			if (proxySet) {
+				doLog("Setting Proxy if any...");
+				this.connection.setRequestProperty("Proxy-Authorization", this.proxyPassword);
+			}
+			doLog("Setting timeout to " + timeout + " milliseconds...");
+			this.connection.setConnectTimeout(timeout);
+			doLog("Setting request method: " + requestMethod);
+			this.connection.setRequestProperty("Method", requestMethod);
+			doLog("Connection established.");
+			doLog("Enable Read: " + (this.enableRead? "true" : "false"));
+			this.connection.setDoInput(enableRead);
+			
+			if(!isEnableWrite() && "POST".equals(requestMethod)) {
+				doLog("Setting write to TRUE for POST request.");
+				setEnableWrite(true);
+			}
+			
+			doLog("Enable Write: " + (this.enableWrite? "true" : "false"));
+			this.connection.setDoOutput(enableWrite);
+			
+			if ("POST".equals(requestMethod)) {
+				addHeader("Content-Type", "application/x-www-form-urlencoded");
+				if (parameterString.length() > 0) {
+//					if (!this.enableWrite) {
+//						doLog("Enable Write: true (obvious).");
+//						this.connection.setDoOutput(true);
+//					}
+					addHeader("Content-Length", Integer.toString(parameterString.getBytes().length));
+					doLog(requestMethod + " " + netPath + "?" + parameterString);
+					getOutputStream().write(parameterString.getBytes());
+					getOutputStream().flush();
+					getOutputStream().close();
+				}
+			}
+		} catch (MalformedURLException e) {
+			throw new IOException(e);
+		}
+	}
+	
+	public int getResponseCode() throws IOException {
+		if (this.connection instanceof HttpURLConnection) {
+			return ((HttpURLConnection)this.connection).getResponseCode();
+		}
+		
+		return -1;
+	}
+	
+	public String getResponseMessage() throws IOException {
+		if (this.connection instanceof HttpURLConnection) {
+			return ((HttpURLConnection)this.connection).getResponseMessage();
+		}
+		
+		return null;
+	}
+	
+	public InputStream getInputStream() throws IOException {
+//		if (this.connection != null && !connectionEstablished()) {
+//			this.connection.setDoInput(enableRead);
+//		}
+		
+		return this.connection.getInputStream();
+	}
+	
+	
+	public OutputStream getOutputStream() throws IOException {
+//		if (this.connection != null) {
+//			this.connection.setDoOutput(enableWrite);
+//		}
+		
+		return this.connection.getOutputStream();
+	}
+	
+	public boolean connectionEstablished() {
+		if (this.connection == null) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public String getContentType() {
+		if (this.connection == null) {
+			return UNKNOWN_MIME_TYPE;
+		} else {
+			return this.connection.getContentType();
+		}
+	}
+	
+	public void addHeader(String header, String value) {
+		if (connection != null) {
+			connection.addRequestProperty(header, value);
+		}
+	}
+	
+	public void addParameter(String name, String value) {
+		if (parameters != null) {
+			if (parameters.containsKey(name)) {
+				parameters.remove(name);
+			}
+			
+			parameters.put(name, value);
+		}
+	}
+	
+	/**
+	 * @param parameters the parameters to set
+	 */
+	public void setParameters(Map<String, String> parameters) {
+		this.parameters = Collections.synchronizedMap(parameters);
+	}
+
+	public String[] getHeaderNames() {
+		ArrayList<String> list = new ArrayList<String>();
+		
+		Set<Map.Entry<String, List<String>>> entrySet = connection.getHeaderFields().entrySet();
+		for (Map.Entry<String, List<String>> entry: entrySet) {
+			list.add(entry.getKey());
+		}
+		
+		String[] headers = new String[list.size()];
+		list.toArray(headers);
+		
+		return headers;
+	}
+	
+	/**
+	 * @return
+	 */
+	public String[] getParameterNames() {
+		ArrayList<String> list = new ArrayList<String>();
+		
+		Set<Map.Entry<String, String>> entrySet = parameters.entrySet();
+		for (Map.Entry<String, String> entry: entrySet) {
+			list.add(entry.getKey());
+		}
+		
+		String[] headers = new String[list.size()];
+		list.toArray(headers);
+		
+		return headers;
+	}
+	
+	public String getHeaderValue(String headerName) {
+		return connection.getHeaderField(headerName);
+	}
+	
+	public String getParameterValue(String name) {
+		return parameters.get(name);
+	}
+	
+	private void doLog(Object object) {
+		if (enableLogging && logger.isInfoEnabled()) {
+			logger.info(object.toString());
+		}
+	}
+}
