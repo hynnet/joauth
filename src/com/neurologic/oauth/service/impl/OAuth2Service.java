@@ -67,7 +67,7 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 			}
 			
 			String code = parameterMap.remove(ResponseType.CODE.toString());			
-			String accessTokenUrl = processReceivedAuthorizaton(request, code, parameterMap);
+			String accessTokenUrl = processReceivedAuthorization(request, code, parameterMap);
 			try {
 				if (accessTokenUrl != null && !accessTokenUrl.isEmpty()) {
 					if (logger.isDebugEnabled()) {
