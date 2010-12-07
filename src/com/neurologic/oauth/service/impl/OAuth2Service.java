@@ -126,6 +126,6 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 		return resultMap;
 	}
 	
-	protected abstract String processReceivedAuthorizaton(HttpServletRequest request, String code, Map<String, String> additionalParameters) throws OAuthException;
+	protected abstract String processReceivedAuthorization(HttpServletRequest request, String code, Map<String, String> additionalParameters) throws OAuthException;
 	protected abstract void processAdditionalReceivedAccessTokenParameters(HttpServletRequest request, Map<String, String> additionalParameters) throws OAuthException;
 }
