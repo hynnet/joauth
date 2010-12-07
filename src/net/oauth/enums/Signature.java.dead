@@ -1,0 +1,33 @@
+/**
+ * 
+ */
+package net.oauth.enums;
+
+/**
+ * @author Bienfait Sindi
+ * @since 20 November 2010
+ *
+ */
+public enum Signature {
+	PLAINTEXT("PLAINTEXT"),
+	HMAC_SHA1("HMAC-SHA1"),
+	RSA_SHA1("RSA_SHA1")
+	;
+	private String method;
+
+	/**
+	 * @param method
+	 */
+	private Signature(String method) {
+		this.method = method;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Enum#toString()
+	 */
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return method;
+	}
+}
