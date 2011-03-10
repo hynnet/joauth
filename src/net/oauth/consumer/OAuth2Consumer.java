@@ -218,7 +218,7 @@ public class OAuth2Consumer {
 			}
 			
 			String response = streamToString(in, charset);
-			if ("application/json".equals(response)) {
+			if ("application/json".equals(contentType)) {
 				attributes = parseJSONObject(new JSONObject(response));
 			} else /*if ("text/plain".equals(contentType)) */{
 				attributes = OAuthUtil.parseQueryString(response);

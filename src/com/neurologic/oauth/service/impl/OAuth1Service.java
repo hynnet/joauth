@@ -64,6 +64,9 @@ public abstract class OAuth1Service implements OAuthService<OAuth1Consumer> {
 		}
 		
 		request.getSession().setAttribute(Globals.SESSION_OAUTH1_ACCESS_TOKEN, accessToken);
+		if (logger.isInfoEnabled()) {
+			logger.info("Access Token(" + accessToken.getToken() + ") stored in session(" + Globals.SESSION_OAUTH1_ACCESS_TOKEN + ").");
+		}
 	}
 
 	protected abstract AccessToken processReceivedAuthorizedToken(HttpServletRequest request, AuthorizedToken authorizedToken) throws OAuthException;

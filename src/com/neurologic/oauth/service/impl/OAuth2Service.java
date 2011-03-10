@@ -90,8 +90,8 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 			request.getSession().setAttribute(Globals.SESSION_OAUTH2_ACCESS_TOKEN, accessToken);
 			processAdditionalReceivedAccessTokenParameters(request, parameterMap);
 			
-			if (logger.isDebugEnabled()) {
-				logger.debug("Access Token stored under \"" + Globals.SESSION_OAUTH2_ACCESS_TOKEN + "\" key.");
+			if (logger.isInfoEnabled()) {
+				logger.info("Access Token stored under \"" + Globals.SESSION_OAUTH2_ACCESS_TOKEN + "\" key.");
 			}
 		}
 	}
