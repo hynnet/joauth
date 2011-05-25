@@ -14,7 +14,7 @@
    limitations under the License.
 
  */
-package net.oauth.token;
+package net.oauth.token.v1;
 
 import net.oauth.util.OAuthUtil;
 

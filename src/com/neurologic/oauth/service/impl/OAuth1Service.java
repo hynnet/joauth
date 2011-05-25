@@ -22,8 +22,8 @@ import javax.servlet.http.HttpServletResponse;
 import net.oauth.consumer.OAuth1Consumer;
 import net.oauth.exception.OAuthException;
 import net.oauth.parameters.OAuthParameters;
-import net.oauth.token.AccessToken;
-import net.oauth.token.AuthorizedToken;
+import net.oauth.token.v1.AccessToken;
+import net.oauth.token.v1.AuthorizedToken;
 
 import org.apache.log4j.Logger;
 
@@ -67,16 +67,16 @@ public abstract class OAuth1Service implements OAuthService<OAuth1Consumer> {
 		String oauthToken = request.getParameter(OAuthParameters.OAUTH_TOKEN);
 		String verifier = request.getParameter(OAuthParameters.OAUTH_VERIFIER);
 		
-		if (oauthToken == null &&  verifier== null) {
+		if (oauthToken == null && verifier == null) {
 			throw new OAuthException("No OAuth Parameters (" + OAuthParameters.OAUTH_TOKEN + ", " + OAuthParameters.OAUTH_VERIFIER + ") found.");
 		}
 		
 		AccessToken accessToken = processReceivedAuthorizedToken(request, new AuthorizedToken(oauthToken, verifier));
 		if (accessToken == null) {
-			throw new OAuthException("AccessToken = null, cannot register it to session.");
+			throw new OAuthException("AccessToken is null, cannot register it to session.");
 		}
 		
-		request.getSession().setAttribute(Globals.SESSION_OAUTH1_ACCESS_TOKEN, accessToken);
+		request.getSession(true).setAttribute(Globals.SESSION_OAUTH1_ACCESS_TOKEN, accessToken);
 		if (logger.isInfoEnabled()) {
 			logger.info("Access Token(" + accessToken.getToken() + ") stored in session(" + Globals.SESSION_OAUTH1_ACCESS_TOKEN + ").");
 		}

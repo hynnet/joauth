@@ -30,11 +30,15 @@ import net.oauth.enums.ResponseType;
 import net.oauth.exception.OAuthException;
 import net.oauth.parameters.OAuth2Parameters;
 import net.oauth.provider.OAuth2ServiceProvider;
+import net.oauth.token.v2.AccessToken;
+import net.oauth.util.OAuth2TokenUtil;
 import net.oauth.util.OAuthUtil;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import sun.misc.BASE64Encoder;
 
 import com.neurologic.exception.HttpException;
 import com.neurologic.http.HttpClient;
@@ -82,6 +86,10 @@ public class OAuth2Consumer {
 		this.serviceProvider = serviceProvider;
 	}
 	
+	public String generateRequestAuthorizationUrl(ResponseType responseType, String redirectUri) throws OAuthException {
+		return generateRequestAuthorizationUrl(responseType, redirectUri,  null);
+	}
+	
 	public String generateRequestAuthorizationUrl(ResponseType responseType, String redirectUri, String state, String... scope) throws OAuthException {
 		return generateRequestAuthorizationUrl(responseType, redirectUri, state, " ", scope);
 	}
@@ -108,7 +116,7 @@ public class OAuth2Consumer {
 			} else {
 				sb.append('?');
 			}
-			sb.append("response_type=" + URLEncoder.encode(responseType.toString(), URL_ENCODING));
+			sb.append(OAuth2Parameters.RESPONSE_TYPE + "=" + URLEncoder.encode(responseType.toString(), URL_ENCODING));
 			
 			sb.append('&');
 			sb.append(OAuth2Parameters.CLIENT_ID + "=" + URLEncoder.encode(clientID, URL_ENCODING));
@@ -134,7 +142,15 @@ public class OAuth2Consumer {
 		return sb.toString();
 	}
 	
-	public String generateRequestAcessTokenUrl(GrantType grantType, OAuth2Parameters parameters, String scopeDelimiter, String... scope) throws OAuthException {
+	public AccessToken requestAcessToken(GrantType grantType, OAuth2Parameters parameters) throws OAuthException {
+		return requestAcessToken(grantType, parameters, (String[])null);
+	}
+	
+	public AccessToken requestAcessToken(GrantType grantType, OAuth2Parameters parameters, String... scope) throws OAuthException {
+		return requestAcessToken(grantType, parameters, " ", scope);
+	}
+	
+	public AccessToken requestAcessToken(GrantType grantType, OAuth2Parameters parameters, String scopeDelimiter, String... scope) throws OAuthException {
 		if (serviceProvider == null) {
 			throw new OAuthException(ERROR_NO_SERVICE_PROVIDER);
 		}
@@ -167,56 +183,22 @@ public class OAuth2Consumer {
 			}
 		}
 		
-		parameters.addParameterValue("grant_type", grantType.toString());
-		parameters.addParameterValue(OAuth2Parameters.CLIENT_ID, clientID);
-		parameters.addParameterValue("client_secret", clientSecret);
-		
-		String serverUrl = null;
-		try {
-			StringBuffer sb = new StringBuffer();
-			for (String parameter: parameters.getParameterNames()) {
-				if (sb.length() > 0)
-					sb.append('&');
-				
-				sb.append(URLEncoder.encode(parameter, URL_ENCODING) + "=" + URLEncoder.encode(parameters.getParameterValue(parameter), URL_ENCODING));
-			}
-			
-			//Scope
-			if (scope != null && scope.length > 0) {
-				sb.append('&');
-				sb.append(OAuth2Parameters.SCOPE + "=" + encodeScope(scope, scopeDelimiter));
-			}
-			
-			serverUrl  = serviceProvider.getAccessTokenUrl();
-			if (serviceProvider.getAuthorizationUrl().indexOf('?') > -1) {
-				serverUrl += "&";
-			} else {
-				serverUrl += "?";
-			}
-			
-			serverUrl += sb.toString();
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			logger.error(e.getLocalizedMessage(), e);
-		}
-		
-		return serverUrl;
-	}
+		parameters.setGrantType(grantType.toString());
+		parameters.setClientId(clientID);
 	
-	public Map<String, String> requestAcessToken(GrantType grantType, OAuth2Parameters parameters, String scopeDelimiter, String... scope) throws OAuthException {
-		String url = generateRequestAcessTokenUrl(grantType, parameters, scopeDelimiter, scope);
-		
-//		if(grantType == GrantType.AUTHORIZATION_CODE) {
-//			throw new OAuthException("Request with a grant Type '" + grantType + "' returns a HTTP 302 to the redirect URI '" + parameters.getRedirectUri() + "' from the service provider.");
-//		}
-		
-		Map<String, String> attributes = null;
 		InputStream in = null;
 		HttpClient client = new ApacheHttpClient();
 		
 		try {
-			in = client.connect("POST", url);
+			client.addRequestHeader(HttpClient.HEADER_AUTHORIZATION, createBasicHttpHeader(clientID, clientSecret));
+			for (String parameter: parameters.getParameterNames()) {
+				client.addParameter(parameter, parameters.getParameterValue(parameter));
+			}
+			
+			in = client.connect("POST", serviceProvider.getAccessTokenUrl());
 			String contentType = client.getResponseHeaderValue("Content-Type");
+			if (contentType == null) contentType = "";
+			
 			logger.info("Content-Type: " + contentType);
 			
 			String charset = "";
@@ -230,12 +212,15 @@ public class OAuth2Consumer {
 				contentType = contentType.substring(0, semicolonPos);
 			}
 			
+			Map<String, String> responseAttributes = null;
 			String response = streamToString(in, charset);
 			if ("application/json".equals(contentType)) {
-				attributes = parseJSONObject(new JSONObject(response));
+				responseAttributes = parseJSONObject(new JSONObject(response));
 			} else /*if ("text/plain".equals(contentType)) */{
-				attributes = OAuthUtil.parseQueryString(response);
+				responseAttributes = OAuthUtil.parseQueryString(response);
 			}
+			
+			return OAuth2TokenUtil.createAccessToken(responseAttributes);
 		} catch (HttpException e) {
 			// TODO Auto-generated catch block
 			throw new OAuthException(e);
@@ -261,8 +246,11 @@ public class OAuth2Consumer {
 				client = null;
 			}
 		}
-		
-		return attributes;
+	}
+	
+	private String createBasicHttpHeader(String id, String secret) throws UnsupportedEncodingException {
+		BASE64Encoder encoder = new BASE64Encoder();
+		return encoder.encode((id + ":" + secret).getBytes(URL_ENCODING));
 	}
 	
 	private String encodeScope(String[] scope, String delimiter) throws UnsupportedEncodingException {
@@ -270,6 +258,8 @@ public class OAuth2Consumer {
 		
 		if (scope != null && scope.length > 0) {
 			for (String _scope : scope) {
+				if (_scope.isEmpty()) continue;
+				
 				if (sb.length() > 0) {
 					sb.append(delimiter);
 				}

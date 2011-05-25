@@ -27,6 +27,8 @@ import com.neurologic.exception.HttpException;
  *
  */
 public interface HttpClient {
+	
+	public static final String HEADER_AUTHORIZATION = "Authorization";
 
 	public void addRequestHeader(String name, String value);
 	public String getRequestHeaderValue(String name);

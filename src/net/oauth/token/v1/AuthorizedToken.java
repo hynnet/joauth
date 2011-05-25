@@ -14,46 +14,35 @@
    limitations under the License.
 
  */
-package net.oauth.token;
-
-import java.util.Map;
+package net.oauth.token.v1;
 
 /**
  * @author Bienfait Sindi
  * @since 20 November 2010
  *
  */
-public class AccessToken extends OAuthToken {
+public class AuthorizedToken extends OAuthToken {
 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1584406119580124615L;
-	private String tokenSecret;
-	private Map<String, String> additionalParameters;
+	private static final long serialVersionUID = -2383224891942308204L;
+	private String verifier;
 	
 	/**
 	 * @param token
-	 * @param tokenSecret
-	 * @param additionalParameters
+	 * @param verifier
 	 */
-	public AccessToken(String token, String tokenSecret, Map<String, String> additionalParameters) {
+	public AuthorizedToken(String token, String verifier) {
 		super(token);
-		this.tokenSecret = tokenSecret;
-		this.additionalParameters = additionalParameters;
+		// TODO Auto-generated constructor stub
+		this.verifier = verifier;
 	}
 
 	/**
-	 * @return the tokenSecret
+	 * @return the verifier
 	 */
-	public String getTokenSecret() {
-		return tokenSecret;
-	}
-
-	/**
-	 * @return the additionalParameters
-	 */
-	public Map<String, String> getAdditionalParameters() {
-		return additionalParameters;
+	public String getVerifier() {
+		return verifier;
 	}
 }

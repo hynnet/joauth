@@ -36,7 +36,11 @@ public class OAuth2Parameters {
 	public static final String ASSERTION = "assertion";
 	public static final String REFRESH_TOKEN = "refresh_token";
 	public static final String SCOPE = "scope";
-	
+	public static final String RESPONSE_TYPE = "response_type";
+	public static final String GRANT_TYPE = "grant_type";
+	public static final String CLIENT_SECRET = "client_secret";
+	public static final String STATE = "state";
+
 	private Map<String, String> parameterMap;
 
 	/**
@@ -47,7 +51,7 @@ public class OAuth2Parameters {
 		parameterMap = new HashMap<String, String>();
 	}
 	
-	public void addParameterValue(String name, String value) {
+	private void addParameterValue(String name, String value) {
 		if (name != null && !name.isEmpty() && value != null && !value.isEmpty()) {
 			parameterMap.put(name, value);
 		}
@@ -73,6 +77,20 @@ public class OAuth2Parameters {
 	
 	public String getParameterValue(String name) {
 		return parameterMap.get(name);
+	}
+	
+	/**
+	 * @return the clientId
+	 */
+	public String getClientId() {
+		return getParameterValue(CLIENT_ID);
+	}
+
+	/**
+	 * @param clientId the clientId to set
+	 */
+	public void setClientId(String clientId) {
+		addParameterValue(CLIENT_ID, clientId);
 	}
 
 	/**
@@ -171,5 +189,33 @@ public class OAuth2Parameters {
 	 */
 	public void setRefreshToken(String refreshToken) {
 		addParameterValue(REFRESH_TOKEN, refreshToken);
+	}
+
+	/**
+	 * @return the responseType
+	 */
+	public String getResponseType() {
+		return getParameterValue(RESPONSE_TYPE);
+	}
+
+	/**
+	 * @param responseType the responseType to set
+	 */
+	public void setResponseType(String responseType) {
+		addParameterValue(RESPONSE_TYPE, responseType);
+	}
+
+	/**
+	 * @return the grantType
+	 */
+	public String getGrantType() {
+		return getParameterValue(GRANT_TYPE);
+	}
+
+	/**
+	 * @param grantType the grantType to set
+	 */
+	public void setGrantType(String grantType) {
+		addParameterValue(GRANT_TYPE, grantType);
 	}
 }

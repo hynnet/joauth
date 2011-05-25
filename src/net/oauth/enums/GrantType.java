@@ -26,7 +26,8 @@ public enum GrantType {
 	PASSWORD("password"),
 	ASSERTION("assertion"),
 	REFRESH_TOKEN("refresh_token"),
-	NONE("none")
+	NONE("none"),
+	CLIENT_CREDENTIALS("client_credentials")
 	;
 	private final String grantType;
 	

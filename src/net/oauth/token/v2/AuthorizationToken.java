@@ -14,35 +14,32 @@
    limitations under the License.
 
  */
-package net.oauth.token;
+package net.oauth.token.v2;
 
 /**
  * @author Bienfait Sindi
- * @since 20 November 2010
+ * @since 24 May 2011
  *
  */
-public class AuthorizedToken extends OAuthToken {
-
+public class AuthorizationToken extends OAuthToken {
+	
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -2383224891942308204L;
-	private String verifier;
-	
+	private static final long serialVersionUID = -7169135066711529392L;
+	private String code;
+
 	/**
-	 * @param token
-	 * @param verifier
+	 * @return the code
 	 */
-	public AuthorizedToken(String token, String verifier) {
-		super(token);
-		// TODO Auto-generated constructor stub
-		this.verifier = verifier;
+	public String getCode() {
+		return code;
 	}
 
 	/**
-	 * @return the verifier
+	 * @param code the code to set
 	 */
-	public String getVerifier() {
-		return verifier;
+	public void setCode(String code) {
+		this.code = code;
 	}
 }

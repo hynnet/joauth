@@ -16,7 +16,6 @@
  */
 package com.neurologic.oauth.service.impl;
 
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -24,9 +23,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.oauth.consumer.OAuth2Consumer;
-import net.oauth.enums.ResponseType;
+import net.oauth.enums.GrantType;
 import net.oauth.exception.OAuthException;
 import net.oauth.parameters.OAuth2Parameters;
+import net.oauth.token.v2.AccessToken;
+import net.oauth.token.v2.AuthorizationToken;
+import net.oauth.util.OAuth2TokenUtil;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -67,6 +69,7 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 	@Override
 	public final void execute(HttpServletRequest request, HttpServletResponse response) throws OAuthException {
 		// TODO Auto-generated method stub
+		AccessToken accessToken = null;
 		Map<String, String> parameterMap = extractParameterMap(request.getParameterMap());
 			
 		if (parameterMap.containsKey("error")) {
@@ -74,24 +77,12 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 		}
 		
 		//Process when we received "code" from request parameter.
-		if (parameterMap.containsKey(ResponseType.CODE.toString())) {
+		if (parameterMap.containsKey(OAuth2Parameters.CODE)) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("\"" + ResponseType.CODE.toString() + "\" received.");
+				logger.debug("\"" + OAuth2Parameters.CODE + "\" received.");
 			}
 			
-			String code = parameterMap.remove(ResponseType.CODE.toString());			
-			String accessTokenUrl = processReceivedAuthorization(request, code, parameterMap);
-			try {
-				if (accessTokenUrl != null && !accessTokenUrl.isEmpty()) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("Redirecting to \"" + accessTokenUrl + "\".");
-					}
-					response.sendRedirect(accessTokenUrl);
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				throw new OAuthException(e);
-			}
+			accessToken = retrieveAccessTokenViaAuthorizationToken(OAuth2TokenUtil.createAuthorizationToken(parameterMap));
 		}
 		
 		//Process when we received "access_token" from request parameter.
@@ -99,10 +90,12 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 			if (logger.isDebugEnabled()) {
 				logger.debug("\"" + OAuth2Parameters.ACCESS_TOKEN + "\" received.");
 			}
-			String accessToken = parameterMap.remove(OAuth2Parameters.ACCESS_TOKEN);
-			request.getSession().setAttribute(Globals.SESSION_OAUTH2_ACCESS_TOKEN, accessToken);
-			processAdditionalReceivedAccessTokenParameters(request, parameterMap);
 			
+			accessToken = OAuth2TokenUtil.createAccessToken(parameterMap);
+		}
+		
+		if (accessToken != null) {
+			request.getSession(true).setAttribute(Globals.SESSION_OAUTH2_ACCESS_TOKEN, accessToken);			
 			if (logger.isInfoEnabled()) {
 				logger.info("Access Token stored under \"" + Globals.SESSION_OAUTH2_ACCESS_TOKEN + "\" key.");
 			}
@@ -126,6 +119,30 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 		throw new OAuthException("OAuth response returned the following error:\r\n" + errorJson.toString());
 	}
 	
+	/**
+	 * This method retrieves the access token based on the authorization code received from the OAuth Service Provider.
+	 * 
+	 * @param authToken The Authorization code
+	 * @return the access token, if successful, null otherwise (or if the autToken is null).
+	 * @throws OAuthException
+	 */
+	private AccessToken retrieveAccessTokenViaAuthorizationToken(AuthorizationToken authToken) throws OAuthException {
+		if (authToken == null) {
+			return null;
+		}
+		
+		String redirectUri = getRedirectUri();
+		if (redirectUri == null || redirectUri.isEmpty()) {
+			throw new OAuthException("No " + OAuth2Parameters.REDIRECT_URI + " provided. Please, implement the 'getRedirectUri()' method.");
+		}
+		
+		OAuth2Parameters parameters = new OAuth2Parameters();
+		parameters.setCode(authToken.getCode());
+		parameters.setRedirectUri(redirectUri);
+		
+		return getConsumer().requestAcessToken(GrantType.AUTHORIZATION_CODE, parameters, getScopeDelimiter(), getScope());
+	}
+	
 	private Map<String, String> extractParameterMap(Map<String, String[]> requestParameterMap) {
 		Map<String, String> resultMap = new LinkedHashMap<String, String>();
 		for (String parameterName : requestParameterMap.keySet()) {
@@ -139,6 +156,13 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 		return resultMap;
 	}
 	
-	protected abstract String processReceivedAuthorization(HttpServletRequest request, String code, Map<String, String> additionalParameters) throws OAuthException;
-	protected abstract void processAdditionalReceivedAccessTokenParameters(HttpServletRequest request, Map<String, String> additionalParameters) throws OAuthException;
+	/**
+	 * The <code>redirect_uri</code> needed for the OAuth authorization and OAuth access token request. It is mandatory to fill this method.
+	 * @return the <code>redirect_uri</code> string.
+	 */
+	protected abstract String getRedirectUri();
+	protected abstract String getState();
+	protected abstract String[] getScope();
+	protected abstract String getScopeDelimiter();
+
 }
