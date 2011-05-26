@@ -190,7 +190,7 @@ public class OAuth2Consumer {
 		HttpClient client = new ApacheHttpClient();
 		
 		try {
-			client.addRequestHeader(HttpClient.HEADER_AUTHORIZATION, createBasicHttpHeader(clientID, clientSecret));
+			client.addRequestHeader(HttpClient.HEADER_AUTHORIZATION, "Basic " + base64Encode(clientID, clientSecret));
 			for (String parameter: parameters.getParameterNames()) {
 				client.addParameter(parameter, parameters.getParameterValue(parameter));
 			}
@@ -214,9 +214,16 @@ public class OAuth2Consumer {
 			
 			Map<String, String> responseAttributes = null;
 			String response = streamToString(in, charset);
-			if ("application/json".equals(contentType)) {
-				responseAttributes = parseJSONObject(new JSONObject(response));
-			} else /*if ("text/plain".equals(contentType)) */{
+			if ("application/json".equals(contentType) || (response.startsWith("{") && response.endsWith("}"))) {
+				JSONObject jsonResponse = new JSONObject(response);
+				if (jsonResponse != null) {
+					if (jsonResponse.has("error")) {
+						throw new OAuthException("Error getting access token: " + System.getProperty("line.separator") + jsonResponse.toString());
+					}
+					
+					responseAttributes = parseJSONObject(jsonResponse);
+				}
+			} else if ("text/plain".equals(contentType) || (response.contains("=") && response.contains("&"))) {
 				responseAttributes = OAuthUtil.parseQueryString(response);
 			}
 			
@@ -248,7 +255,7 @@ public class OAuth2Consumer {
 		}
 	}
 	
-	private String createBasicHttpHeader(String id, String secret) throws UnsupportedEncodingException {
+	private String base64Encode(String id, String secret) throws UnsupportedEncodingException {
 		BASE64Encoder encoder = new BASE64Encoder();
 		return encoder.encode((id + ":" + secret).getBytes(URL_ENCODING));
 	}

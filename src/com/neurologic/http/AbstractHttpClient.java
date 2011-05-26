@@ -165,8 +165,10 @@ public abstract class AbstractHttpClient implements HttpClient {
 			parameterMap = new LinkedHashMap<String, String>();
 		}
 		
-		removeParameter(name);
-		parameterMap.put(name, name);
+		if (parameterMap.containsKey(name)) {
+			removeParameter(name);
+		}
+		parameterMap.put(name, value);
 	}
 
 	/* (non-Javadoc)

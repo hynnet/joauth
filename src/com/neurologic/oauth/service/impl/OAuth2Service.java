@@ -70,7 +70,7 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 	public final void execute(HttpServletRequest request, HttpServletResponse response) throws OAuthException {
 		// TODO Auto-generated method stub
 		AccessToken accessToken = null;
-		Map<String, String> parameterMap = extractParameterMap(request.getParameterMap());
+		Map<String, String> parameterMap = extractParameterMap(request);
 			
 		if (parameterMap.containsKey("error")) {
 			throwOAuthErrorException(parameterMap);
@@ -102,7 +102,31 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 		}
 	}
 	
-	protected void throwOAuthErrorException(Map<String, String> parameterMap) throws OAuthException {
+	/**
+	 * Retrieve all HTTP parameters from the {@link HttpServletRequest}.
+	 * @param request
+	 * @return
+	 */
+	protected final Map<String, String> extractParameterMap(HttpServletRequest request) {
+		Map<String, String> resultMap = new LinkedHashMap<String, String>();
+		for (String parameterName : request.getParameterMap().keySet()) {
+			String[] requestValue = request.getParameterMap().get(parameterName);
+			
+			if (requestValue != null) {
+				resultMap.put(parameterName, requestValue[0]);
+			}
+		}
+		
+		return resultMap;
+	}
+	
+	/**
+	 * If the <code>parameterMap</code> contains a "error" key (OAuth error), then throw an {@link OAuthException}.
+	 * 
+	 * @param parameterMap
+	 * @throws OAuthException
+	 */
+	protected final void throwOAuthErrorException(Map<String, String> parameterMap) throws OAuthException {
 		JSONObject errorJson = new JSONObject();
 		for (String parameterName : parameterMap.keySet()) {
 			if (parameterName.startsWith("error")) {
@@ -126,7 +150,7 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 	 * @return the access token, if successful, null otherwise (or if the autToken is null).
 	 * @throws OAuthException
 	 */
-	private AccessToken retrieveAccessTokenViaAuthorizationToken(AuthorizationToken authToken) throws OAuthException {
+	protected AccessToken retrieveAccessTokenViaAuthorizationToken(AuthorizationToken authToken) throws OAuthException {
 		if (authToken == null) {
 			return null;
 		}
@@ -143,19 +167,6 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 		return getConsumer().requestAcessToken(GrantType.AUTHORIZATION_CODE, parameters, getScopeDelimiter(), getScope());
 	}
 	
-	private Map<String, String> extractParameterMap(Map<String, String[]> requestParameterMap) {
-		Map<String, String> resultMap = new LinkedHashMap<String, String>();
-		for (String parameterName : requestParameterMap.keySet()) {
-			String[] requestValue = requestParameterMap.get(parameterName);
-			
-			if (requestValue != null) {
-				resultMap.put(parameterName, requestValue[0]);
-			}
-		}
-		
-		return resultMap;
-	}
-	
 	/**
 	 * The <code>redirect_uri</code> needed for the OAuth authorization and OAuth access token request. It is mandatory to fill this method.
 	 * @return the <code>redirect_uri</code> string.
@@ -164,5 +175,4 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 	protected abstract String getState();
 	protected abstract String[] getScope();
 	protected abstract String getScopeDelimiter();
-
 }
