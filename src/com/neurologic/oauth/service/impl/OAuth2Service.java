@@ -35,7 +35,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.neurologic.oauth.service.OAuthService;
-import com.neurologic.oauth.util.Globals;
 
 /**
  * @author Bienfait Sindi
@@ -95,10 +94,11 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 		}
 		
 		if (accessToken != null) {
-			request.getSession(true).setAttribute(Globals.SESSION_OAUTH2_ACCESS_TOKEN, accessToken);			
 			if (logger.isInfoEnabled()) {
-				logger.info("Access Token stored under \"" + Globals.SESSION_OAUTH2_ACCESS_TOKEN + "\" key.");
+				logger.info("Storing access token to `saveAccessToken() method.");
 			}
+			
+			saveAccessToken(request, accessToken);
 		}
 	}
 	
@@ -175,4 +175,12 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 	protected abstract String getState();
 	protected abstract String[] getScope();
 	protected abstract String getScopeDelimiter();
+	
+	/**
+	 * This method allows the end user to save the received access token to their persistent storage of their choice.
+	 * @param request
+	 * @param accessToken
+	 * @throws Exception
+	 */
+	protected abstract void saveAccessToken(HttpServletRequest request, AccessToken accessToken);
 }
