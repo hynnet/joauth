@@ -22,9 +22,9 @@ public class TestOAuth2 {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		String client_id = "381571044440";
-        String client_secret = "460f1f0ca32bbf32458a8b8dec6a216e";
-        String redirectUri = "http://localhost:8080/Music4Point0/oauth_redirect";
+		String client_id = "ENTER ID HERE";
+        String client_secret = "ENTER CLIENT SECRET HERE";
+        String redirectUri = "http://localhost:8080/my_app/oauth_redirect";
         OAuth2ServiceProvider provider = new OAuth2ServiceProvider("https://graph.facebook.com/oauth/authorize", "https://graph.facebook.com/oauth/access_token");
         OAuth2Consumer consumer = new OAuth2Consumer(client_id, client_secret, provider);
         
