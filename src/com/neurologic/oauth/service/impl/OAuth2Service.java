@@ -41,7 +41,7 @@ import com.neurologic.oauth.service.OAuthService;
  * @since 30 November 2010
  *
  */
-public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
+public abstract class OAuth2Service implements OAuthService<OAuth2Consumer, AccessToken> {
 
 	protected final Logger logger = Logger.getLogger(this.getClass());
 	private OAuth2Consumer consumer;
@@ -95,7 +95,7 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 		
 		if (accessToken != null) {
 			if (logger.isInfoEnabled()) {
-				logger.info("Storing access token to `saveAccessToken()` method.");
+				logger.info("Storing access token by calling `saveAccessToken()` method.");
 			}
 			
 			saveAccessToken(request, accessToken);
@@ -150,11 +150,11 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 	 * @return the access token, if successful, null otherwise (or if the autToken is null).
 	 * @throws OAuthException
 	 */
-	protected AccessToken retrieveAccessTokenViaAuthorizationToken(AuthorizationToken authToken) throws OAuthException {
-		if (authToken == null) {
-			return null;
-		}
-		
+	private AccessToken retrieveAccessTokenViaAuthorizationToken(AuthorizationToken authToken) throws OAuthException {
+//		if (authToken == null) {
+//			return null;
+//		}
+//		
 		String redirectUri = getRedirectUri();
 		if (redirectUri == null || redirectUri.isEmpty()) {
 			throw new OAuthException("No " + OAuth2Parameters.REDIRECT_URI + " provided. Please, implement the 'getRedirectUri()' method.");
@@ -175,12 +175,4 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 	protected abstract String getState();
 	protected abstract String[] getScope();
 	protected abstract String getScopeDelimiter();
-	
-	/**
-	 * This method allows the end user to save the received access token to their persistent storage of their choice.
-	 * @param request
-	 * @param accessToken
-	 * @throws Exception
-	 */
-	protected abstract void saveAccessToken(HttpServletRequest request, AccessToken accessToken);
 }

@@ -37,7 +37,7 @@ public class OAuth2ServiceFactory implements OAuthServiceFactory {
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> OAuthService<T> createOAuthService(Class<?> clazz, ProviderConfig providerConfig, ConsumerConfig consumerConfig) throws Exception {
+	public <C, AT> OAuthService<C, AT> createOAuthService(Class<?> clazz, ProviderConfig providerConfig, ConsumerConfig consumerConfig) throws Exception {
 		// TODO Auto-generated method stub
 		if (!OAuth2Service.class.isAssignableFrom(clazz)) {
 			throw new Exception("Class '" + clazz.getName() + "' is not an instance of '" + OAuth2Service.class.getName() + "'.");
@@ -48,6 +48,6 @@ public class OAuth2ServiceFactory implements OAuthServiceFactory {
 		OAuth2Service service = (OAuth2Service) clazz.newInstance();
 		service.setOAuthConsumer(consumer);
 		
-		return (OAuthService<T>) service;
+		return (OAuthService<C, AT>) service;
 	}
 }

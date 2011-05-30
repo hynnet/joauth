@@ -26,8 +26,9 @@ import net.oauth.exception.OAuthException;
  * @since 27 November 2010
  *
  */
-public interface OAuthService<T> {
+public interface OAuthService<C, T> {
 
-	public void setOAuthConsumer(T consumer);
+	public void setOAuthConsumer(C consumer);
 	public void execute(HttpServletRequest request, HttpServletResponse response) throws OAuthException;
+	public void saveAccessToken(HttpServletRequest request, T accessToken);
 }

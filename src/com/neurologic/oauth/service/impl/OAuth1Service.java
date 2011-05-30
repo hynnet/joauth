@@ -22,26 +22,30 @@ import javax.servlet.http.HttpServletResponse;
 import net.oauth.consumer.OAuth1Consumer;
 import net.oauth.exception.OAuthException;
 import net.oauth.parameters.OAuthParameters;
+import net.oauth.signature.OAuthSignature;
+import net.oauth.signature.impl.OAuthHmacSha1Signature;
+import net.oauth.signature.impl.OAuthPlainTextSignature;
+import net.oauth.signature.impl.OAuthRsaSha1Signature;
 import net.oauth.token.v1.AccessToken;
 import net.oauth.token.v1.AuthorizedToken;
+import net.oauth.token.v1.RequestToken;
 
 import org.apache.log4j.Logger;
 
 import com.neurologic.oauth.service.OAuthService;
-import com.neurologic.oauth.util.Globals;
 
 /**
  * @author Bienfait Sindi
  * @since 27 November 2010
  *
  */
-public abstract class OAuth1Service implements OAuthService<OAuth1Consumer> {
+public abstract class OAuth1Service implements OAuthService<OAuth1Consumer, AccessToken> {
 
 	protected final Logger logger = Logger.getLogger(this.getClass());
 	private OAuth1Consumer consumer;
 	
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.OAuthService#setOAuthConsumer(java.lang.Object)
+	$ * @see com.neurologic.oauth.service.OAuthService#setOAuthConsumer(java.lang.Object)
 	 */
 	@Override
 	public void setOAuthConsumer(OAuth1Consumer consumer) {
@@ -71,16 +75,35 @@ public abstract class OAuth1Service implements OAuthService<OAuth1Consumer> {
 			throw new OAuthException("No OAuth Parameters (" + OAuthParameters.OAUTH_TOKEN + ", " + OAuthParameters.OAUTH_VERIFIER + ") found.");
 		}
 		
-		AccessToken accessToken = processReceivedAuthorizedToken(request, new AuthorizedToken(oauthToken, verifier));
-		if (accessToken == null) {
-			throw new OAuthException("AccessToken is null, cannot register it to session.");
+		RequestToken requestToken = getRequestToken(request);
+		if (requestToken == null) {
+			throw new OAuthException("The request token is needed when requesting access token.");
 		}
 		
-		request.getSession(true).setAttribute(Globals.SESSION_OAUTH1_ACCESS_TOKEN, accessToken);
-		if (logger.isInfoEnabled()) {
-			logger.info("Access Token(" + accessToken.getToken() + ") stored in session(" + Globals.SESSION_OAUTH1_ACCESS_TOKEN + ").");
+		if (getOAuthSignature() == null) {
+			throw new OAuthException("No OAuth Signature method provided. Please implement the `getOAuthSignature()` method.");
+		}
+		
+		AccessToken accessToken = getConsumer().requestAccessToken(getRealm(), new AuthorizedToken(oauthToken, verifier), requestToken.getTokenSecret(), getOAuthSignature());
+		if (accessToken != null) {
+			if (logger.isInfoEnabled()) {
+				logger.info("Saving Access Token by calling the `saveAccessToken()` method.");
+			}
+			
+			saveAccessToken(request, accessToken);
 		}
 	}
 
-	protected abstract AccessToken processReceivedAuthorizedToken(HttpServletRequest request, AuthorizedToken authorizedToken) throws OAuthException;
+	protected abstract String getRealm();
+	
+	/**
+	 * It is <b>mandatory</b> to specify your OAuth Signature if you want to have a successful authorization workflow to receive access token.
+	 * 
+	 * @see OAuthHmacSha1Signature
+	 * @see OAuthPlainTextSignature
+	 * @see OAuthRsaSha1Signature
+	 * @return an {@link OAuthSignature}
+	 */
+	protected abstract OAuthSignature getOAuthSignature();
+	protected abstract RequestToken getRequestToken(HttpServletRequest request);
 }

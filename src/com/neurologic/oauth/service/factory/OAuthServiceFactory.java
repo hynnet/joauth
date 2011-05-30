@@ -27,5 +27,5 @@ import com.neurologic.oauth.service.OAuthService;
  */
 public interface OAuthServiceFactory {
 
-	public <T> OAuthService<T> createOAuthService(Class<?> clazz, ProviderConfig provider, ConsumerConfig consumer) throws Exception;
+	public <C, AT> OAuthService<C, AT> createOAuthService(Class<?> clazz, ProviderConfig provider, ConsumerConfig consumer) throws Exception;
 }

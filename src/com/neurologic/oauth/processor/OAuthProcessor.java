@@ -85,7 +85,7 @@ public class OAuthProcessor {
 			throw new Exception("No <consumer> defined under <oauth>. Cannot create OAuth Consumer.");
 		}
 		
-		OAuthService<?> service = OAuthServiceAbstractFactory.getOAuthServiceFactory(oauthConfig.getVersion()).createOAuthService(clazz, providerConfig, consumerConfig);
+		OAuthService<?, ?> service = OAuthServiceAbstractFactory.getOAuthServiceFactory(oauthConfig.getVersion()).createOAuthService(clazz, providerConfig, consumerConfig);
 		service.execute(request, response);
 		
 		//Finally
