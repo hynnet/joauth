@@ -95,7 +95,7 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer> {
 		
 		if (accessToken != null) {
 			if (logger.isInfoEnabled()) {
-				logger.info("Storing access token to `saveAccessToken() method.");
+				logger.info("Storing access token to `saveAccessToken()` method.");
 			}
 			
 			saveAccessToken(request, accessToken);
