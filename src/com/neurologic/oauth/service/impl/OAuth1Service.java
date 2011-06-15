@@ -84,7 +84,7 @@ public abstract class OAuth1Service implements OAuthService<OAuth1Consumer, Acce
 			throw new OAuthException("No OAuth Signature method provided. Please implement the `getOAuthSignature()` method.");
 		}
 		
-		AccessToken accessToken = getConsumer().requestAccessToken(getRealm(), new AuthorizedToken(oauthToken, verifier), requestToken.getTokenSecret(), getOAuthSignature());
+		AccessToken accessToken = getConsumer().requestAccessToken(getRealm(), requestToken, new AuthorizedToken(oauthToken, verifier), getOAuthSignature());
 		if (accessToken != null) {
 			if (logger.isInfoEnabled()) {
 				logger.info("Saving Access Token by calling the `saveAccessToken()` method.");
