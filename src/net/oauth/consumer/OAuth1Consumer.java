@@ -110,12 +110,8 @@ public class OAuth1Consumer {
 			oauthParameters.setOAuthSignatureMethod(signature.getOAuthSignatureMethod());
 			oauthParameters.setOAuthTimestamp(Long.toString(timestamp));
 			oauthParameters.setOAuthVersion(OAuth1ServiceProvider.PROTOCOL_VERSION);
-			if (callbackUrl != null) {
+			if (callbackUrl != null && !callbackUrl.isEmpty()) {
 				oauthParameters.setOAuthCallback(callbackUrl);
-			}
-			
-			if (oauthParameters.getOAuthParameterValue(OAuthParameters.OAUTH_TOKEN_SECRET) == null) {
-				oauthParameters.setOAuthTokenSecret("");
 			}
 			
 			//We are cloning here...
@@ -170,7 +166,7 @@ public class OAuth1Consumer {
 		return createOAuthUserAuthorizationUrl(requestToken.getToken(), additionalParameters);
 	}
 	
-	public String createOAuthUserAuthorizationUrl(String requestToken, Map<String, String> additionalParameters) throws OAuthException {
+	private String createOAuthUserAuthorizationUrl(String requestToken, Map<String, String> additionalParameters) throws OAuthException {
 		if (serviceProvider == null) {
 			throw new OAuthException(ERROR_NO_SERVICE_PROVIDER);
 		}
@@ -187,13 +183,21 @@ public class OAuth1Consumer {
 		return oauthAuthorizeUrl + ((oauthAuthorizeUrl.indexOf('?') > -1) ? "&" : "?") + OAuthUtil.getQueryString(additionalParameters, new QueryKeyValuePair());
 	}
 	
-	public AccessToken requestAccessToken(String realm, AuthorizedToken authorizedToken, String requestTokenSecret, OAuthSignature signature) throws OAuthException {
+	public AccessToken requestAccessToken(String realm, RequestToken requestToken, AuthorizedToken authorizedToken, OAuthSignature signature) throws OAuthException {
 		if (serviceProvider == null) {
 			throw new OAuthException(ERROR_NO_SERVICE_PROVIDER);
 		}
 		
-		if (requestTokenSecret == null || requestTokenSecret.isEmpty()) {
-			throw new OAuthException("Request '" + OAuthParameters.OAUTH_TOKEN_SECRET + "' is null or empty.");
+		if (requestToken == null) {
+			throw new OAuthException("No Request Token provided.");
+		}
+		
+		if (authorizedToken == null) {
+			throw new OAuthException("No Authorized Token provided.");
+		}
+		
+		if (!requestToken.getToken().equals(authorizedToken.getToken())) {
+			throw new OAuthException("Request Token and Authorized token don't match! (" + requestToken.getToken() + " != " + authorizedToken.getToken() + ")");
 		}
 		
 		if (signature == null) {
@@ -202,7 +206,7 @@ public class OAuth1Consumer {
 		
 		if (signature instanceof ConsumerSecretBasedOAuthSignature) {
 			((ConsumerSecretBasedOAuthSignature)signature).setConsumerSecret(consumerSecret);
-			((ConsumerSecretBasedOAuthSignature)signature).setTokenSecret(requestTokenSecret);
+			((ConsumerSecretBasedOAuthSignature)signature).setTokenSecret(requestToken.getTokenSecret());
 		}
 		
 		AccessToken accessToken = null;
@@ -217,7 +221,7 @@ public class OAuth1Consumer {
 			oauthParameters.setOAuthNonce(OAuthUtil.getNONCE());
 			oauthParameters.setOAuthSignatureMethod(signature.getOAuthSignatureMethod());
 			oauthParameters.setOAuthTimestamp(Long.toString(timestamp));
-			oauthParameters.setOAuthToken(authorizedToken.getToken());
+			oauthParameters.setOAuthToken(requestToken.getToken());
 			oauthParameters.setOAuthVersion(OAuth1ServiceProvider.PROTOCOL_VERSION);
 			oauthParameters.setOAuthVerifier(authorizedToken.getVerifier());
 			
