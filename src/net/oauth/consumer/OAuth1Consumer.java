@@ -34,7 +34,7 @@ import net.oauth.signature.OAuthSignature;
 import net.oauth.token.v1.AccessToken;
 import net.oauth.token.v1.AuthorizedToken;
 import net.oauth.token.v1.RequestToken;
-import net.oauth.util.OAuthUtil;
+import net.oauth.util.OAuth1Util;
 
 import org.apache.log4j.Logger;
 
@@ -103,10 +103,10 @@ public class OAuth1Consumer {
 		HttpClient client = new ApacheHttpClient();
 		
 		try {
-			long timestamp = OAuthUtil.getTimestamp();
+			long timestamp = OAuth1Util.getTimestamp();
 			OAuthParameters oauthParameters = new OAuthParameters();
 			oauthParameters.setOAuthConsumerKey(consumerKey);
-			oauthParameters.setOAuthNonce(OAuthUtil.getNONCE());
+			oauthParameters.setOAuthNonce(OAuth1Util.getNONCE());
 			oauthParameters.setOAuthSignatureMethod(signature.getOAuthSignatureMethod());
 			oauthParameters.setOAuthTimestamp(Long.toString(timestamp));
 			oauthParameters.setOAuthVersion(OAuth1ServiceProvider.PROTOCOL_VERSION);
@@ -119,7 +119,7 @@ public class OAuth1Consumer {
 			if (additionalParameters != null) {
 				map.putAll(additionalParameters);
 			}
-			String baseString = OAuthUtil.getSignatureBaseString(httpRequestMethod, requestTokenUrl, map);
+			String baseString = OAuth1Util.getSignatureBaseString(httpRequestMethod, requestTokenUrl, map);
 			oauthParameters.setOAuthSignature(signature.sign(baseString));
 			
 			//Add realm (if provided)
@@ -127,7 +127,7 @@ public class OAuth1Consumer {
 				oauthParameters.setOAuthRealm(realm);
 			}
 			
-			client.addRequestHeader(HTTP_HEADER_AUTHORIZATION, "OAuth " + OAuthUtil.getQueryString(oauthParameters.getOAuthParameters(), new HeaderKeyValuePair()));
+			client.addRequestHeader(HTTP_HEADER_AUTHORIZATION, "OAuth " + OAuth1Util.getQueryString(oauthParameters.getOAuthParameters(), new HeaderKeyValuePair()));
 			String data = streamToString(client.connect(httpRequestMethod, requestTokenUrl));
 			if (client.getStatusCode() != 200) {
 				throw new OAuthException("HTTP/1.0 " + client.getStatusCode() + " " + client.getStatusReason() + "\n" + data);
@@ -179,8 +179,8 @@ public class OAuth1Consumer {
 			additionalParameters.put(OAuthParameters.OAUTH_TOKEN, requestToken);
 		}
 		
-		String oauthAuthorizeUrl = serviceProvider.getUserAuthorizationUrl();	
-		return oauthAuthorizeUrl + ((oauthAuthorizeUrl.indexOf('?') > -1) ? "&" : "?") + OAuthUtil.getQueryString(additionalParameters, new QueryKeyValuePair());
+		String oauthAuthorizeUrl = serviceProvider.getAuthorizationUrl();	
+		return oauthAuthorizeUrl + ((oauthAuthorizeUrl.indexOf('?') > -1) ? "&" : "?") + OAuth1Util.getQueryString(additionalParameters, new QueryKeyValuePair());
 	}
 	
 	public AccessToken requestAccessToken(String realm, RequestToken requestToken, AuthorizedToken authorizedToken, OAuthSignature signature) throws OAuthException {
@@ -215,17 +215,17 @@ public class OAuth1Consumer {
 		String httpRequestMethod = "POST";
 		
 		try {
-			long timestamp = OAuthUtil.getTimestamp();
+			long timestamp = OAuth1Util.getTimestamp();
 			OAuthParameters oauthParameters = new OAuthParameters();
 			oauthParameters.setOAuthConsumerKey(consumerKey);
-			oauthParameters.setOAuthNonce(OAuthUtil.getNONCE());
+			oauthParameters.setOAuthNonce(OAuth1Util.getNONCE());
 			oauthParameters.setOAuthSignatureMethod(signature.getOAuthSignatureMethod());
 			oauthParameters.setOAuthTimestamp(Long.toString(timestamp));
 			oauthParameters.setOAuthToken(requestToken.getToken());
 			oauthParameters.setOAuthVersion(OAuth1ServiceProvider.PROTOCOL_VERSION);
 			oauthParameters.setOAuthVerifier(authorizedToken.getVerifier());
 			
-			String baseString = OAuthUtil.getSignatureBaseString(httpRequestMethod, accessTokenUrl, oauthParameters.getOAuthParameters());
+			String baseString = OAuth1Util.getSignatureBaseString(httpRequestMethod, accessTokenUrl, oauthParameters.getOAuthParameters());
 			oauthParameters.setOAuthSignature(signature.sign(baseString));
 			
 			//Add realm (if provided)
@@ -233,7 +233,7 @@ public class OAuth1Consumer {
 				oauthParameters.setOAuthRealm(realm);
 			}
 			
-			client.addRequestHeader(HTTP_HEADER_AUTHORIZATION, "OAuth " + OAuthUtil.getQueryString(oauthParameters.getOAuthParameters(), new HeaderKeyValuePair()));
+			client.addRequestHeader(HTTP_HEADER_AUTHORIZATION, "OAuth " + OAuth1Util.getQueryString(oauthParameters.getOAuthParameters(), new HeaderKeyValuePair()));
 			String data = streamToString(client.connect(httpRequestMethod, accessTokenUrl));
 			if (client.getStatusCode() != 200) {
 				throw new OAuthException("HTTP/1.0 " + client.getStatusCode() + " " + client.getStatusReason() + "\n" + data);
@@ -274,7 +274,6 @@ public class OAuth1Consumer {
 		}
 		
 		return sw.toString();
-
 	}
 	
 	private Map<String, String> generateToken(String data) throws IOException {
@@ -282,7 +281,7 @@ public class OAuth1Consumer {
 		
 		if (data != null) {
 			if (data.split("\r\n|\r|\n").length > 1) {//First line always end with a \r\n
-				throw new IOException("OAuth Error: \n\n" + data);
+				throw new IOException("OAuth Error: " + System.getProperty("line.separator") + data);
 			}
 			
 			//Do we have callback?

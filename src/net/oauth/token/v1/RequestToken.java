@@ -16,7 +16,7 @@
  */
 package net.oauth.token.v1;
 
-import net.oauth.util.OAuthUtil;
+import net.oauth.util.OAuth1Util;
 
 /**
  * @author Bienfait Sindi
@@ -62,6 +62,6 @@ public class RequestToken extends OAuthToken {
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
-		return ("oauth_token=" + OAuthUtil.encode(getToken()) + "&oauth_token_secret=" + OAuthUtil.encode(getTokenSecret()));
+		return ("oauth_token=" + OAuth1Util.encode(getToken()) + "&oauth_token_secret=" + OAuth1Util.encode(getTokenSecret()) + "&oauth_callback_confirmed=" + Boolean.toString(isOauthCallbackConfirmed()));
 	}
 }

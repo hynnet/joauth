@@ -22,8 +22,10 @@ import net.oauth.provider.OAuth2ServiceProvider;
 import com.neurologic.oauth.config.ConsumerConfig;
 import com.neurologic.oauth.config.ProviderConfig;
 import com.neurologic.oauth.service.OAuthService;
+import com.neurologic.oauth.service.consumer.OAuth2Service;
 import com.neurologic.oauth.service.factory.OAuthServiceFactory;
-import com.neurologic.oauth.service.impl.OAuth2Service;
+import com.neurologic.oauth.service.provider.v2.OAuth2ProviderService;
+import com.neurologic.oauth.util.ClassLoaderUtil;
 
 /**
  * @author Bienfait Sindi
@@ -33,21 +35,59 @@ import com.neurologic.oauth.service.impl.OAuth2Service;
 public class OAuth2ServiceFactory implements OAuthServiceFactory {
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.factory.OAuthServiceFactory#createOAuthService(java.lang.Class, com.neurologic.oauth.config.ProviderConfig, com.neurologic.oauth.config.ConsumerConfig)
+	 * @see com.neurologic.oauth.service.factory.OAuthServiceFactory#createOAuthProviderService(java.lang.String, java.lang.Class, com.neurologic.oauth.config.ProviderConfig)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
-	public <C, AT> OAuthService<C, AT> createOAuthService(Class<?> clazz, ProviderConfig providerConfig, ConsumerConfig consumerConfig) throws Exception {
+	public OAuthService createOAuthProviderService(String oauthName, Class<?> serviceClass, ProviderConfig providerConfig) throws Exception {
 		// TODO Auto-generated method stub
-		if (!OAuth2Service.class.isAssignableFrom(clazz)) {
-			throw new Exception("Class '" + clazz.getName() + "' is not an instance of '" + OAuth2Service.class.getName() + "'.");
+		if (!OAuth2ProviderService.class.isAssignableFrom(serviceClass)) {
+			throw new Exception("Class '" + serviceClass.getName() + "' is not an instance of '" + OAuth2ProviderService.class.getName() + "'.");
 		}
 		
-		OAuth2ServiceProvider serviceProvider = new OAuth2ServiceProvider(providerConfig.getAuthorizationUrl(), providerConfig.getAccessTokenUrl());
-		OAuth2Consumer consumer = new OAuth2Consumer(consumerConfig.getKey(), consumerConfig.getSecret(), serviceProvider);
-		OAuth2Service service = (OAuth2Service) clazz.newInstance();
+		OAuth2ProviderService service = (OAuth2ProviderService) serviceClass.newInstance();
+		service.setOAuthServiceProvider(createServiceProvider(providerConfig, oauthName));
+
+		return (OAuthService) service;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.neurologic.oauth.service.factory.OAuthServiceFactory#createOAuthConsumerService(java.lang.String, java.lang.Class, com.neurologic.oauth.config.ProviderConfig, com.neurologic.oauth.config.ConsumerConfig)
+	 */
+	@Override
+	public OAuthService createOAuthConsumerService(String oauthName, Class<?> serviceClass, ProviderConfig providerConfig, ConsumerConfig consumerConfig) throws Exception {
+		// TODO Auto-generated method stub
+		if (!OAuth2Service.class.isAssignableFrom(serviceClass)) {
+			throw new Exception("Class '" + serviceClass.getName() + "' is not an instance of '" + OAuth2Service.class.getName() + "'.");
+		}
+		
+		OAuth2Consumer consumer = new OAuth2Consumer(consumerConfig.getKey(), consumerConfig.getSecret(), createServiceProvider(providerConfig, oauthName));
+		OAuth2Service service = (OAuth2Service) serviceClass.newInstance();
 		service.setOAuthConsumer(consumer);
 		
-		return (OAuthService<C, AT>) service;
+		return (OAuthService) service;
+	}
+	
+	private OAuth2ServiceProvider createServiceProvider(ProviderConfig providerConfig, String oauthName) throws Exception {
+		OAuth2ServiceProvider serviceProvider = null;
+		if (providerConfig.getClassName() == null || providerConfig.getClassName().isEmpty()) {
+			if (providerConfig.getAuthorizationUrl() == null && providerConfig.getAccessTokenUrl() == null) {
+				throw new Exception("No provider endpoints provider for oauth '" + oauthName + "'");
+			}
+			
+			serviceProvider = new OAuth2ServiceProvider(providerConfig.getAuthorizationUrl(), providerConfig.getAccessTokenUrl());
+		} else {
+			Class<?> serviceProviderClass = ClassLoaderUtil.getInstance().getClassLoader().loadClass(providerConfig.getClassName());
+			if (serviceProviderClass == null) {
+				throw new Exception("Provider class '" + providerConfig.getClassName() + "' not found.");
+			}
+			
+			if (!OAuth2ServiceProvider.class.isAssignableFrom(serviceProviderClass)) {
+				throw new Exception("Provider class '" + providerConfig.getClassName() + "' is not an instance of '" + OAuth2ServiceProvider.class.getName() + "'");
+			}
+			
+			serviceProvider = (OAuth2ServiceProvider) serviceProviderClass.newInstance();
+		}
+		
+		return serviceProvider;
 	}
 }

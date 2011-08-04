@@ -21,23 +21,20 @@ package net.oauth.provider;
  * @since 31 March 2010
  *
  */
-public class OAuth1ServiceProvider {
+public class OAuth1ServiceProvider extends OAuthServiceProvider {
 
 	public static final String PROTOCOL_VERSION = "1.0";
 	
 	private String requestTokenUrl;
-	private String userAuthorizationUrl;
-	private String accessTokenUrl;
 	
 	/**
 	 * @param requestTokenUrl
-	 * @param userAuthorizationUrl
+	 * @param authorizationUrl
 	 * @param accessTokenUrl
 	 */
-	public OAuth1ServiceProvider(String requestTokenUrl, String userAuthorizationUrl, String accessTokenUrl) {
-		this.requestTokenUrl = requestTokenUrl;
-		this.userAuthorizationUrl = userAuthorizationUrl;
-		this.accessTokenUrl = accessTokenUrl;
+	public OAuth1ServiceProvider(String requestTokenUrl, String authorizationUrl, String accessTokenUrl) {
+		super(authorizationUrl, accessTokenUrl);
+		setRequestTokenUrl(requestTokenUrl);
 	}
 	
 	/**
@@ -53,32 +50,15 @@ public class OAuth1ServiceProvider {
 	public void setRequestTokenUrl(String requestTokenUrl) {
 		this.requestTokenUrl = requestTokenUrl;
 	}
-	
-	/**
-	 * @return the userAuthorizationUrl
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
 	 */
-	public String getUserAuthorizationUrl() {
-		return userAuthorizationUrl;
-	}
-	
-	/**
-	 * @param userAuthorizationUrl the userAuthorizationUrl to set
-	 */
-	public void setUserAuthorizationUrl(String userAuthorizationUrl) {
-		this.userAuthorizationUrl = userAuthorizationUrl;
-	}
-	
-	/**
-	 * @return the accessTokenUrl
-	 */
-	public String getAccessTokenUrl() {
-		return accessTokenUrl;
-	}
-	
-	/**
-	 * @param accessTokenUrl the accessTokenUrl to set
-	 */
-	public void setAccessTokenUrl(String accessTokenUrl) {
-		this.accessTokenUrl = accessTokenUrl;
+	@Override
+	public String toString() {
+		return this.getClass().getName() + " [getRequestTokenUrl()="
+				+ getRequestTokenUrl() + ", getAuthorizationUrl()="
+				+ getAuthorizationUrl() + ", getAccessTokenUrl()="
+				+ getAccessTokenUrl() + "]";
 	}
 }

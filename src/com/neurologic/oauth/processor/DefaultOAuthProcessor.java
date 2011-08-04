@@ -30,25 +30,27 @@ import com.neurologic.oauth.config.ServiceConfig;
 import com.neurologic.oauth.config.SuccessConfig;
 import com.neurologic.oauth.service.OAuthService;
 import com.neurologic.oauth.service.factory.OAuthServiceAbstractFactory;
+import com.neurologic.oauth.util.ClassLoaderUtil;
 
 /**
  * @author Bienfait Sindi
  * @since 23 November 2010
  *
  */
-public class OAuthProcessor {
+public class DefaultOAuthProcessor implements OAuthProcessor {
 
-	private static final Logger logger = Logger.getLogger(OAuthProcessor.class);
+	private static final Logger logger = Logger.getLogger(DefaultOAuthProcessor.class);
 	private ModuleConfig module;
 	
 	/**
 	 * @param module
 	 */
-	public OAuthProcessor(ModuleConfig module) {
+	public DefaultOAuthProcessor(ModuleConfig module) {
 		super();
 		this.module = module;
 	}
 
+	@Override
 	public void process(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		String path = request.getPathInfo();
 		if (logger.isDebugEnabled()) {
@@ -60,13 +62,8 @@ public class OAuthProcessor {
 			throw new Exception("No <service> defined for path='" + path + "'.");
 		}
 		
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		if (classLoader == null) {
-			classLoader = this.getClass().getClassLoader();
-		}
-		
-		Class<?> clazz = classLoader.loadClass(serviceConfig.getServiceClass());
-		if (clazz == null) {
+		Class<?> serviceClass = ClassLoaderUtil.getInstance().getClassLoader().loadClass(serviceConfig.getServiceClass());
+		if (serviceClass == null) {
 			throw new Exception("No class exits for " + serviceConfig.getServiceClass());
 		}
 		
@@ -75,17 +72,29 @@ public class OAuthProcessor {
 			throw new Exception("No <oauth> defined with name='" + serviceConfig.getRefOAuth() + "'.");
 		}
 		
-		ProviderConfig providerConfig = oauthConfig.getProvider();
-		ConsumerConfig consumerConfig = oauthConfig.getConsumer();
+		ProviderConfig providerConfig = oauthConfig.getProviderConfig();
+		ConsumerConfig consumerConfig = oauthConfig.getConsumerConfig();
+		OAuthService service = null;
+		
 		if (providerConfig == null) {
 			throw new Exception("No <provider> defined under <oauth>. Cannot create OAuth Service Provider.");
 		}
 		
-		if (consumerConfig == null) {
-			throw new Exception("No <consumer> defined under <oauth>. Cannot create OAuth Consumer.");
+		if (!oauthConfig.isProvider()) {
+			if (consumerConfig == null) {
+				throw new Exception("No <consumer> defined under <oauth>. Cannot create OAuth Consumer.");
+			}
+			
+			service = OAuthServiceAbstractFactory.getOAuthServiceFactory(oauthConfig.getVersion()).createOAuthConsumerService(oauthConfig.getName(), serviceClass, providerConfig, consumerConfig);
+		} else {
+			service = OAuthServiceAbstractFactory.getOAuthServiceFactory(oauthConfig.getVersion()).createOAuthProviderService(oauthConfig.getName(), serviceClass, providerConfig);
 		}
 		
-		OAuthService<?, ?> service = OAuthServiceAbstractFactory.getOAuthServiceFactory(oauthConfig.getVersion()).createOAuthService(clazz, providerConfig, consumerConfig);
+		if (service == null) {
+			throw new Exception("Strange! No service found for class '" + serviceConfig.getServiceClass() + "'");
+		}
+		
+		//execute the service.
 		service.execute(request, response);
 		
 		//Finally

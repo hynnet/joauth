@@ -17,18 +17,14 @@
 package com.neurologic.oauth.service;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import net.oauth.exception.OAuthException;
 
 /**
  * @author Bienfait Sindi
  * @since 27 November 2010
  *
  */
-public interface OAuthService<C, T> {
+public interface OAuthConsumerService<C, T> extends OAuthService {
 
 	public void setOAuthConsumer(C consumer);
-	public void execute(HttpServletRequest request, HttpServletResponse response) throws OAuthException;
 	public void saveAccessToken(HttpServletRequest request, T accessToken);
 }

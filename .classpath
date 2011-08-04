@@ -6,12 +6,12 @@
 			<attribute name="owner.project.facets" value="java"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files/Apache Software Foundation/Tomcat 7.0/lib/servlet-api.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Buhake.sindi/Downloads/httpclient-4.1.1.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Buhake.sindi/Downloads/httpcore-4.1.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Buhake.sindi/Downloads/httpmime-4.1.1.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Buhake.sindi/Downloads/log4j-1.2.16.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Buhake.sindi/Downloads/org.json.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Buhake.sindi/Downloads/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files (x86)/Apache Software Foundation/Tomcat 7.0/lib/servlet-api.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Buhake.Sindi/Downloads/httpclient-4.1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Buhake.Sindi/Downloads/httpcore-4.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Buhake.Sindi/Downloads/httpmime-4.1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Buhake.Sindi/Downloads/log4j-1.2.16.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Buhake.Sindi/Downloads/org.json.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Buhake.Sindi/Downloads/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

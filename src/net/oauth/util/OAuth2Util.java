@@ -16,7 +16,6 @@
  */
 package net.oauth.util;
 
-import java.util.Iterator;
 import java.util.Map;
 
 import net.oauth.parameters.OAuth2Parameters;
@@ -28,11 +27,11 @@ import net.oauth.token.v2.AuthorizationToken;
  * @since 24 May 2011
  *
  */
-public class OAuth2TokenUtil {
+public class OAuth2Util {
 	
 	private static final String EXPIRES_IN = "expires_in";
 	
-	private OAuth2TokenUtil() {}
+	private OAuth2Util() {}
 	
 	/**
 	 * Creates an authorization token based on a response map received by the OAuth Server.
@@ -50,10 +49,9 @@ public class OAuth2TokenUtil {
 		}
 		
 		AuthorizationToken authorizationToken = new AuthorizationToken();
-		Iterator<String> iter = responseMap.keySet().iterator();
-		synchronized (iter) {
-			while (iter.hasNext()) {
-				String key = iter.next();
+		
+		synchronized (responseMap) {
+			for (String key : responseMap.keySet()) {
 				String value = responseMap.get(key);
 				
 				if (OAuth2Parameters.CODE.equals(key)) {
@@ -87,10 +85,8 @@ public class OAuth2TokenUtil {
 		}
 		
 		AccessToken accessToken = new AccessToken();
-		Iterator<String> iter = responseMap.keySet().iterator();
-		synchronized (iter) {
-			while (iter.hasNext()) {
-				String key = iter.next();
+		synchronized (responseMap) {
+			for (String key : responseMap.keySet()) {
 				String value = responseMap.get(key);
 				
 				if (OAuth2Parameters.ACCESS_TOKEN.equals(key)) {

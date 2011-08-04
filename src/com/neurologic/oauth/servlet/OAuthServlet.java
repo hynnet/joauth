@@ -28,6 +28,7 @@ import org.apache.log4j.Logger;
 
 import com.neurologic.oauth.config.ModuleConfig;
 import com.neurologic.oauth.config.ModuleConfigFactory;
+import com.neurologic.oauth.processor.DefaultOAuthProcessor;
 import com.neurologic.oauth.processor.OAuthProcessor;
 import com.neurologic.oauth.util.Globals;
 
@@ -84,7 +85,7 @@ public class OAuthServlet extends HttpServlet {
 	public void destroy() {
 		// TODO Auto-generated method stub
 		if (logger.isInfoEnabled()) {
-			logger.info("finalizing...");
+			logger.info("destroying...");
 		}
 
 		getServletContext().removeAttribute(Globals.MODULE_KEY);
@@ -114,7 +115,7 @@ public class OAuthServlet extends HttpServlet {
 		}
 		
 		try {	
-			OAuthProcessor processor = new OAuthProcessor((ModuleConfig) getServletContext().getAttribute(Globals.MODULE_KEY));
+			OAuthProcessor processor = new DefaultOAuthProcessor((ModuleConfig) getServletContext().getAttribute(Globals.MODULE_KEY));
 			processor.process(request, response);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

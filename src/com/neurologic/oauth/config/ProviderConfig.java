@@ -32,6 +32,7 @@ public class ProviderConfig implements Serializable {
 	private String requestTokenUrl;
 	private String authorizationUrl;
 	private String accessTokenUrl;
+	private String className;
 	
 	/**
 	 * @return the requestTokenUrl
@@ -75,6 +76,20 @@ public class ProviderConfig implements Serializable {
 		this.accessTokenUrl = accessTokenUrl;
 	}
 
+	/**
+	 * @return the className
+	 */
+	public String getClassName() {
+		return className;
+	}
+
+	/**
+	 * @param className the className to set
+	 */
+	public void setClassName(String className) {
+		this.className = className;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -88,6 +103,8 @@ public class ProviderConfig implements Serializable {
 				* result
 				+ ((authorizationUrl == null) ? 0 : authorizationUrl.hashCode());
 		result = prime * result
+				+ ((className == null) ? 0 : className.hashCode());
+		result = prime * result
 				+ ((requestTokenUrl == null) ? 0 : requestTokenUrl.hashCode());
 		return result;
 	}
@@ -97,28 +114,44 @@ public class ProviderConfig implements Serializable {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (getClass() != obj.getClass())
+		}
+		if (obj == null) {
 			return false;
+		}
+		if (!(obj instanceof ProviderConfig)) {
+			return false;
+		}
 		ProviderConfig other = (ProviderConfig) obj;
 		if (accessTokenUrl == null) {
-			if (other.accessTokenUrl != null)
+			if (other.accessTokenUrl != null) {
 				return false;
-		} else if (!accessTokenUrl.equals(other.accessTokenUrl))
+			}
+		} else if (!accessTokenUrl.equals(other.accessTokenUrl)) {
 			return false;
+		}
 		if (authorizationUrl == null) {
-			if (other.authorizationUrl != null)
+			if (other.authorizationUrl != null) {
 				return false;
-		} else if (!authorizationUrl.equals(other.authorizationUrl))
+			}
+		} else if (!authorizationUrl.equals(other.authorizationUrl)) {
 			return false;
+		}
+		if (className == null) {
+			if (other.className != null) {
+				return false;
+			}
+		} else if (!className.equals(other.className)) {
+			return false;
+		}
 		if (requestTokenUrl == null) {
-			if (other.requestTokenUrl != null)
+			if (other.requestTokenUrl != null) {
 				return false;
-		} else if (!requestTokenUrl.equals(other.requestTokenUrl))
+			}
+		} else if (!requestTokenUrl.equals(other.requestTokenUrl)) {
 			return false;
+		}
 		return true;
 	}
 }

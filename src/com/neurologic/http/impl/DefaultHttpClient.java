@@ -24,12 +24,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import net.oauth.parameters.QueryKeyValuePair;
-import net.oauth.util.OAuthUtil;
+import net.oauth.util.OAuth1Util;
 
 import org.apache.log4j.Logger;
 
@@ -89,7 +88,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
 		// TODO Auto-generated method stub
 		int questionMarkPos = url.indexOf('?'); 
 		if (questionMarkPos > 0) {
-			Map<String, String> retrievedParameters = OAuthUtil.parseQueryString(url.substring(questionMarkPos + 1));
+			Map<String, String> retrievedParameters = OAuth1Util.parseQueryString(url.substring(questionMarkPos + 1));
 			if (parameterMap == null) {
 				parameterMap = new LinkedHashMap<String, String>();
 			}
@@ -97,7 +96,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
 			url = url.substring(0, questionMarkPos);
 		}
 		
-		String queryString = OAuthUtil.getQueryString(parameterMap, new QueryKeyValuePair());
+		String queryString = OAuth1Util.getQueryString(parameterMap, new QueryKeyValuePair());
 		OutputStream output = null;
 		
 		try {
@@ -160,10 +159,8 @@ public class DefaultHttpClient extends AbstractHttpClient {
 	
 	private void populateRequestProperty() {
 		if (urlConnection != null) {
-			Iterator<MessageHeader> iter = requestHeaders.iterator();
-			synchronized (iter) {
-				while (iter.hasNext()) {
-					MessageHeader mh = iter.next();
+			synchronized (requestHeaders) {
+				for (MessageHeader mh: requestHeaders) {
 					urlConnection.addRequestProperty(mh.getName(), mh.getValue());
 				}
 			}
@@ -178,10 +175,8 @@ public class DefaultHttpClient extends AbstractHttpClient {
 				responseHeaders.clear();
 			}
 			
-			Iterator<String> iter = urlConnection.getHeaderFields().keySet().iterator();
-			synchronized (iter) {
-				while (iter.hasNext()) {
-					String key = iter.next();
+			synchronized (urlConnection.getHeaderFields().keySet()) {
+				for (String key : urlConnection.getHeaderFields().keySet()) {
 					responseHeaders.add(new MessageHeader(key, urlConnection.getHeaderField(key)));
 				}
 			}

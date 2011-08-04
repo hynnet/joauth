@@ -54,6 +54,20 @@ public class OAuthParameters implements Serializable {
 		// TODO Auto-generated constructor stub
 		parameterMap = new LinkedHashMap<String, String>();
 	}
+	
+	public OAuthParameters(Map<String, String> parameters) {
+		this();
+		
+		if (parameters != null) {
+			for (String parameter : parameters.keySet()) {
+				String value = parameters.get(parameter);
+				if (parameter.startsWith("oauth_") || OAUTH_REALM.equals(parameter)) {
+					setOAuthParameter(parameter, value);
+				}
+			}
+		}
+	}
+	
 	/**
 	 * @param oauthCallback the oauthCallback to set
 	 */
@@ -62,6 +76,7 @@ public class OAuthParameters implements Serializable {
 			setOAuthParameter(OAUTH_CALLBACK, oauthCallback);
 		}
 	}
+	
 	/**
 	 * @param oauthCallbackConfirmed the oauthCallbackConfirmed to set
 	 */
@@ -70,6 +85,7 @@ public class OAuthParameters implements Serializable {
 			setOAuthParameter(OAUTH_CALLBACK_CONFIRMED, oauthCallbackConfirmed);
 		}
 	}
+	
 	/**
 	 * @param oauthConsumerKey the oauthConsumerKey to set
 	 */
@@ -78,6 +94,7 @@ public class OAuthParameters implements Serializable {
 			setOAuthParameter(OAUTH_CONSUMER_KEY, oauthConsumerKey);
 		}
 	}
+	
 	/**
 	 * @param oauthNonce the oauthNonce to set
 	 */
@@ -86,11 +103,16 @@ public class OAuthParameters implements Serializable {
 			setOAuthParameter(OAUTH_NONCE, oauthNonce);
 		}
 	}
+	
+	/**
+	 * @param realm the realm to set
+	 */
 	public void setOAuthRealm(String realm) {
 		if (realm != null && !realm.isEmpty()) {
 			setOAuthParameter(OAUTH_REALM, realm);
 		}
 	}
+	
 	/**
 	 * @param oauthSignature the oauthSignature to set
 	 */
@@ -99,6 +121,7 @@ public class OAuthParameters implements Serializable {
 			setOAuthParameter(OAUTH_SIGNATURE, oauthSignature);
 		}
 	}
+	
 	/**
 	 * @param oauthSignatureMethod the oauthSignatureMethod to set
 	 */
@@ -107,6 +130,7 @@ public class OAuthParameters implements Serializable {
 			setOAuthParameter(OAUTH_SIGNATURE_METHOD, oauthSignatureMethod);
 		}
 	}
+	
 	/**
 	 * @param oauthTimestamp the oauthTimestamp to set
 	 */
@@ -115,6 +139,7 @@ public class OAuthParameters implements Serializable {
 			setOAuthParameter(OAUTH_TIMESTAMP, oauthTimestamp);
 		}
 	}
+	
 	/**
 	 * @param oauthToken the oauthToken to set
 	 */
@@ -123,6 +148,7 @@ public class OAuthParameters implements Serializable {
 			setOAuthParameter(OAUTH_TOKEN, oauthToken);
 		}
 	}
+	
 	/**
 	 * @param oauthTokenSecret the oauthTokenSecret to set
 	 */
@@ -131,6 +157,7 @@ public class OAuthParameters implements Serializable {
 			setOAuthParameter(OAUTH_TOKEN_SECRET, oauthTokenSecret);
 		}
 	}
+	
 	/**
 	 * @param oauthVerifier the oauthVerifier to set
 	 */
@@ -139,6 +166,7 @@ public class OAuthParameters implements Serializable {
 			setOAuthParameter(OAUTH_VERIFIER, oauthVerifier);
 		}
 	}
+	
 	/**
 	 * @param oauthVersion the oauthVersion to set
 	 */
@@ -148,7 +176,7 @@ public class OAuthParameters implements Serializable {
 		}
 	}
 	
-	public Map<String, String> getOAuthParameters() {
+	public final Map<String, String> getOAuthParameters() {
 		return parameterMap;
 	}
 	
@@ -158,7 +186,19 @@ public class OAuthParameters implements Serializable {
 	
 	private void setOAuthParameter(String key, String value) {
 		if (key != null && !key.isEmpty() && value != null) {
+			if (!key.startsWith("oauth_") && !OAUTH_REALM.equals(key)) {
+				throw new IllegalArgumentException("OAuth parameters must start with \"oauth_\" or is \"" + OAUTH_REALM + "\".");
+			}
+			
 			parameterMap.put(key, value);
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "OAuthParameters [parameterMap=" + parameterMap + "]";
 	}
 }

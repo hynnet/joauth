@@ -31,8 +31,8 @@ import net.oauth.exception.OAuthException;
 import net.oauth.parameters.OAuth2Parameters;
 import net.oauth.provider.OAuth2ServiceProvider;
 import net.oauth.token.v2.AccessToken;
-import net.oauth.util.OAuth2TokenUtil;
-import net.oauth.util.OAuthUtil;
+import net.oauth.util.OAuth1Util;
+import net.oauth.util.OAuth2Util;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -224,10 +224,10 @@ public class OAuth2Consumer {
 					responseAttributes = parseJSONObject(jsonResponse);
 				}
 			} else if ("text/plain".equals(contentType) || (response.contains("=") && response.contains("&"))) {
-				responseAttributes = OAuthUtil.parseQueryString(response);
+				responseAttributes = OAuth1Util.parseQueryString(response);
 			}
 			
-			return OAuth2TokenUtil.createAccessToken(responseAttributes);
+			return OAuth2Util.createAccessToken(responseAttributes);
 		} catch (HttpException e) {
 			// TODO Auto-generated catch block
 			throw new OAuthException(e);
