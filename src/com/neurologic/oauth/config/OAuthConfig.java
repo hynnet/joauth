@@ -31,15 +31,9 @@ public class OAuthConfig implements Serializable {
 	private static final long serialVersionUID = -5799834794283130836L;
 	private String name;
 	private int version;
-	private ConsumerConfig consumer;
-	private ProviderConfig provider;
-	
-	/**
-	 * @return the consumer
-	 */
-	public ConsumerConfig getConsumer() {
-		return consumer;
-	}
+	private boolean provider = false;
+	private ConsumerConfig consumerConfig;
+	private ProviderConfig providerConfig;
 	
 	/**
 	 * @return the name
@@ -47,47 +41,68 @@ public class OAuthConfig implements Serializable {
 	public String getName() {
 		return name;
 	}
-
+	
 	/**
 	 * @param name the name to set
 	 */
 	public void setName(String name) {
 		this.name = name;
 	}
-
+	
 	/**
 	 * @return the version
 	 */
 	public int getVersion() {
 		return version;
 	}
-
+	
 	/**
 	 * @param version the version to set
 	 */
 	public void setVersion(int version) {
 		this.version = version;
 	}
-
-	/**
-	 * @param consumer the consumer to set
-	 */
-	public void setConsumer(ConsumerConfig consumer) {
-		this.consumer = consumer;
-	}
 	
 	/**
 	 * @return the provider
 	 */
-	public ProviderConfig getProvider() {
+	public boolean isProvider() {
 		return provider;
 	}
 	
 	/**
 	 * @param provider the provider to set
 	 */
-	public void setProvider(ProviderConfig provider) {
+	public void setProvider(boolean provider) {
 		this.provider = provider;
+	}
+	
+	/**
+	 * @return the consumerConfig
+	 */
+	public ConsumerConfig getConsumerConfig() {
+		return consumerConfig;
+	}
+	
+	/**
+	 * @param consumerConfig the consumerConfig to set
+	 */
+	public void setConsumerConfig(ConsumerConfig consumerConfig) {
+		this.consumerConfig = consumerConfig;
+	}
+	
+	/**
+	 * @return the providerConfig
+	 */
+	public ProviderConfig getProviderConfig() {
+		return providerConfig;
+	}
+	
+	/**
+	 * @param providerConfig the providerConfig to set
+	 */
+	public void setProviderConfig(ProviderConfig providerConfig) {
+		this.providerConfig = providerConfig;
 	}
 
 	/* (non-Javadoc)
@@ -98,10 +113,11 @@ public class OAuthConfig implements Serializable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-				+ ((consumer == null) ? 0 : consumer.hashCode());
+				+ ((consumerConfig == null) ? 0 : consumerConfig.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + (provider ? 1231 : 1237);
 		result = prime * result
-				+ ((provider == null) ? 0 : provider.hashCode());
+				+ ((providerConfig == null) ? 0 : providerConfig.hashCode());
 		result = prime * result + version;
 		return result;
 	}
@@ -111,27 +127,29 @@ public class OAuthConfig implements Serializable {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
 		if (this == obj)
 			return true;
+		if (obj == null)
+			return false;
 		if (getClass() != obj.getClass())
 			return false;
 		OAuthConfig other = (OAuthConfig) obj;
-		if (consumer == null) {
-			if (other.consumer != null)
+		if (consumerConfig == null) {
+			if (other.consumerConfig != null)
 				return false;
-		} else if (!consumer.equals(other.consumer))
+		} else if (!consumerConfig.equals(other.consumerConfig))
 			return false;
 		if (name == null) {
 			if (other.name != null)
 				return false;
 		} else if (!name.equals(other.name))
 			return false;
-		if (provider == null) {
-			if (other.provider != null)
+		if (provider != other.provider)
+			return false;
+		if (providerConfig == null) {
+			if (other.providerConfig != null)
 				return false;
-		} else if (!provider.equals(other.provider))
+		} else if (!providerConfig.equals(other.providerConfig))
 			return false;
 		if (version != other.version)
 			return false;

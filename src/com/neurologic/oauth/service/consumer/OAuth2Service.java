@@ -14,7 +14,7 @@
    limitations under the License.
 
  */
-package com.neurologic.oauth.service.impl;
+package com.neurologic.oauth.service.consumer;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -28,20 +28,20 @@ import net.oauth.exception.OAuthException;
 import net.oauth.parameters.OAuth2Parameters;
 import net.oauth.token.v2.AccessToken;
 import net.oauth.token.v2.AuthorizationToken;
-import net.oauth.util.OAuth2TokenUtil;
+import net.oauth.util.OAuth2Util;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.neurologic.oauth.service.OAuthService;
+import com.neurologic.oauth.service.OAuthConsumerService;
 
 /**
  * @author Bienfait Sindi
  * @since 30 November 2010
  *
  */
-public abstract class OAuth2Service implements OAuthService<OAuth2Consumer, AccessToken> {
+public abstract class OAuth2Service implements OAuthConsumerService<OAuth2Consumer, AccessToken> {
 
 	protected final Logger logger = Logger.getLogger(this.getClass());
 	private OAuth2Consumer consumer;
@@ -81,7 +81,7 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer, Acce
 				logger.debug("\"" + OAuth2Parameters.CODE + "\" received.");
 			}
 			
-			accessToken = retrieveAccessTokenViaAuthorizationToken(OAuth2TokenUtil.createAuthorizationToken(parameterMap));
+			accessToken = retrieveAccessTokenViaAuthorizationToken(OAuth2Util.createAuthorizationToken(parameterMap));
 		}
 		
 		//Process when we received "access_token" from request parameter.
@@ -90,7 +90,7 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer, Acce
 				logger.debug("\"" + OAuth2Parameters.ACCESS_TOKEN + "\" received.");
 			}
 			
-			accessToken = OAuth2TokenUtil.createAccessToken(parameterMap);
+			accessToken = OAuth2Util.createAccessToken(parameterMap);
 		}
 		
 		if (accessToken != null) {
@@ -135,7 +135,7 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer, Acce
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					//This should never happen?
-					logger.error("JSONException? ", e);
+					logger.error("JSONException: ", e);
 				}
 			}
 		}
@@ -157,7 +157,7 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer, Acce
 //		
 		String redirectUri = getRedirectUri();
 		if (redirectUri == null || redirectUri.isEmpty()) {
-			throw new OAuthException("No " + OAuth2Parameters.REDIRECT_URI + " provided. Please, implement the 'getRedirectUri()' method.");
+			throw new OAuthException("No '" + OAuth2Parameters.REDIRECT_URI + "' provided. Please, implement the 'getRedirectUri()' method.");
 		}
 		
 		OAuth2Parameters parameters = new OAuth2Parameters();
@@ -168,7 +168,7 @@ public abstract class OAuth2Service implements OAuthService<OAuth2Consumer, Acce
 	}
 	
 	/**
-	 * The <code>redirect_uri</code> needed for the OAuth authorization and OAuth access token request. It is mandatory to fill this method.
+	 * The <code>redirect_uri</code> needed for the OAuth authorization and OAuth access token request. It is mandatory to implement this method.
 	 * @return the <code>redirect_uri</code> string.
 	 */
 	protected abstract String getRedirectUri();

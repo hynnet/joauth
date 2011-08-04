@@ -21,7 +21,7 @@ import java.security.GeneralSecurityException;
 import net.oauth.signature.ConsumerSecretBasedOAuthSignature;
 import net.oauth.signature.OAuthSignatureMethod;
 import net.oauth.util.OAuthSignatureUtil;
-import net.oauth.util.OAuthUtil;
+import net.oauth.util.OAuth1Util;
 
 /**
  * @author Bienfait Sindi
@@ -52,7 +52,7 @@ public class OAuthHmacSha1Signature extends ConsumerSecretBasedOAuthSignature {
 	@Override
 	public String sign(String data) throws GeneralSecurityException {
 		// TODO Auto-generated method stub
-		String key = OAuthUtil.encode(getConsumerSecret()) + "&" + OAuthUtil.encode((getTokenSecret() == null || getTokenSecret().isEmpty()) ? "" : getTokenSecret());
+		String key = OAuth1Util.encode(getConsumerSecret()) + "&" + OAuth1Util.encode((getTokenSecret() == null || getTokenSecret().isEmpty()) ? "" : getTokenSecret());
 		return OAuthSignatureUtil.generateHmacSHA1Signature(data, key);
 	}
 }

@@ -20,13 +20,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import net.oauth.parameters.QueryKeyValuePair;
-import net.oauth.util.OAuthUtil;
+import net.oauth.util.OAuth1Util;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -97,7 +96,7 @@ public class ApacheHttpClient extends AbstractHttpClient {
 		// TODO Auto-generated method stub
 		int questionMarkPos = url.indexOf('?'); 
 		if (questionMarkPos > 0) {
-			Map<String, String> retrievedParameters = OAuthUtil.parseQueryString(url.substring(questionMarkPos + 1));
+			Map<String, String> retrievedParameters = OAuth1Util.parseQueryString(url.substring(questionMarkPos + 1));
 			if (parameterMap == null) {
 				parameterMap = new LinkedHashMap<String, String>();
 			}
@@ -145,7 +144,7 @@ public class ApacheHttpClient extends AbstractHttpClient {
 	}
 	
 	private HttpGet createHttpGet(String url) {
-		String queryString = OAuthUtil.getQueryString(parameterMap, new QueryKeyValuePair());
+		String queryString = OAuth1Util.getQueryString(parameterMap, new QueryKeyValuePair());
 		return new HttpGet(url + "?" + queryString);
 	}
 	
@@ -153,15 +152,14 @@ public class ApacheHttpClient extends AbstractHttpClient {
 		HttpPost post = new HttpPost(url);
 		
 		if (parameterMap != null && !parameterMap.isEmpty()) {
+			
 			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-			Iterator<String> iter = parameterMap.keySet().iterator();
-			synchronized (iter) {
-				while (iter.hasNext()) {
-					String key = iter.next();
+			synchronized (parameterMap) {
+				for (String key : parameterMap.keySet()) {
 					nvps.add(new BasicNameValuePair(key, parameterMap.get(key)));
 				}
 			}
-			
+
 			post.setEntity(new UrlEncodedFormEntity(nvps, HTTP.UTF_8));
 		}
 		
@@ -170,10 +168,8 @@ public class ApacheHttpClient extends AbstractHttpClient {
 	
 	private void transferHttpHeaders(HttpRequestBase baseRequest) {
 		if (requestHeaders != null && baseRequest != null) {
-			Iterator<MessageHeader> iter = requestHeaders.iterator();
-			synchronized (iter) {
-				while (iter.hasNext()) {
-					MessageHeader mh = iter.next();
+			synchronized (requestHeaders) {
+				for (MessageHeader mh : requestHeaders) {
 					baseRequest.setHeader(mh.getName(), mh.getValue());
 				}
 			}

@@ -16,11 +16,10 @@
  */
 package net.oauth.parameters;
 
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import net.oauth.util.OAuthUtil;
+import net.oauth.util.OAuth1Util;
 
 /**
  * @author Bienfait Sindi
@@ -53,18 +52,14 @@ public abstract class KeyValuePair {
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
-		String s = "";
-		Iterator<String> itr = kvMap.keySet().iterator();
+		String s = "";	
 		
-		if (itr != null) {
-			while (itr.hasNext()) {
-				if (!s.isEmpty()) {
-					s += pairDelimiter;
-				}
-				
-				String key = itr.next();
-				s += OAuthUtil.encode(key) + startDelimiter + OAuthUtil.encode(kvMap.get(key)) + endDelimiter; 
+		for (String key : kvMap.keySet()) {
+			if (!s.isEmpty()) {
+				s += pairDelimiter;
 			}
+			
+			s += OAuth1Util.encode(key) + startDelimiter + OAuth1Util.encode(kvMap.get(key)) + endDelimiter;
 		}
 		
 		return s;

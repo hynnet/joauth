@@ -19,7 +19,6 @@ package net.oauth.util;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -33,7 +32,7 @@ import net.oauth.parameters.OAuthParameters;
  * @since 29 December 2009
  * 
  */
-public class OAuthUtil {
+public class OAuth1Util {
 	
 	public static long getTimestamp() {
 		return System.currentTimeMillis() / 1000;
@@ -45,7 +44,7 @@ public class OAuthUtil {
 	
 	public static String getSignatureBaseString(String httpRequestMethod, String requestUrl, Map<String, String> oauthParameters) {
 		//Must remove first, "oauth_signature"
-		if (oauthParameters != null && oauthParameters.containsKey(OAuthParameters.OAUTH_REALM)) {
+		if (oauthParameters != null && oauthParameters.containsKey(OAuthParameters.OAUTH_SIGNATURE)) {
 			oauthParameters.remove(OAuthParameters.OAUTH_SIGNATURE);
 		}
 		
@@ -88,15 +87,13 @@ public class OAuthUtil {
 		}
 		
 		StringBuffer sb = new StringBuffer();
-		Iterator<String> itr = treeMap.keySet().iterator();
-		synchronized (itr) {
+		synchronized (treeMap) {
 			
-			while (itr.hasNext()) {
+			for (String key : treeMap.keySet()) {
 				if (sb.length() > 0) {
 					sb.append("&");
 				}
 				
-				String key = itr.next();
 				String value = parameters.get(key);
 				sb.append(encode(key)).append("=").append(encode(value));
 			}
@@ -117,10 +114,10 @@ public class OAuthUtil {
 				try {
 					String[] keyValue = parameter.split("=", 2);
 					String name = URLDecoder.decode(keyValue[0], "UTF-8");
-					if (name.isEmpty())
-						continue;
-					String value = !keyValue[1].isEmpty() ? URLDecoder.decode(keyValue[1], "UTF-8") : "";
-					map.put(name, value);
+					if (name != null && !name.isEmpty()) {
+						String value = !keyValue[1].isEmpty() ? URLDecoder.decode(keyValue[1], "UTF-8") : "";
+						map.put(name, value);
+					}
 				} catch (UnsupportedEncodingException e) {}
 			}
 		}
@@ -137,10 +134,8 @@ public class OAuthUtil {
 			kvp.add(OAuthParameters.OAUTH_REALM, parameters.get(OAuthParameters.OAUTH_REALM));
 		}
 		
-		Iterator<String> itr = parameters.keySet().iterator();
-		synchronized (itr) {
-			while (itr.hasNext()) {
-				String key = itr.next();
+		synchronized (parameters) {
+			for (String key : parameters.keySet()) {
 				
 				if (OAuthParameters.OAUTH_REALM.equals(key)) continue;
 				String value = parameters.get(key);

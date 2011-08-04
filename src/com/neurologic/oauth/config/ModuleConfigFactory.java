@@ -88,22 +88,24 @@ public class ModuleConfigFactory {
 		OAuthConfig config = new OAuthConfig();
 		config.setName(element.getAttribute("name"));
 		config.setVersion(Integer.parseInt(element.getAttribute("version")));
+		config.setProvider(Boolean.parseBoolean(element.getAttribute("provider")));
 		
 		NodeList consumerList = element.getElementsByTagName("consumer");
-		if (consumerList != null) {
+		if (consumerList != null && consumerList.getLength() > 0) {
 			Element consumer = (Element) consumerList.item(0);
-			config.setConsumer(new ConsumerConfig());
-			config.getConsumer().setKey(consumer.getAttribute("key"));
-			config.getConsumer().setSecret(consumer.getAttribute("secret"));
+			config.setConsumerConfig(new ConsumerConfig());
+			config.getConsumerConfig().setKey(consumer.getAttribute("key"));
+			config.getConsumerConfig().setSecret(consumer.getAttribute("secret"));
 		}
 		
 		NodeList providerList = element.getElementsByTagName("provider");
-		if (providerList != null) {
+		if (providerList != null && providerList.getLength() > 0) {
 			Element provider = (Element) providerList.item(0);
-			config.setProvider(new ProviderConfig());
-			config.getProvider().setRequestTokenUrl(provider.getAttribute("requestTokenUrl"));
-			config.getProvider().setAuthorizationUrl(provider.getAttribute("authorizationUrl"));
-			config.getProvider().setAccessTokenUrl(provider.getAttribute("accessTokenUrl"));
+			config.setProviderConfig(new ProviderConfig());
+			config.getProviderConfig().setRequestTokenUrl(provider.getAttribute("requestTokenUrl"));
+			config.getProviderConfig().setAuthorizationUrl(provider.getAttribute("authorizationUrl"));
+			config.getProviderConfig().setAccessTokenUrl(provider.getAttribute("accessTokenUrl"));
+			config.getProviderConfig().setClassName(provider.getAttribute("class"));
 		}
 		
 		return config;

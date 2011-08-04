@@ -21,45 +21,23 @@ package net.oauth.provider;
  * @since 24 July 2010
  *
  */
-public class OAuth2ServiceProvider {
-
-	private String authorizationUrl;
-	private String accessTokenUrl;
+public class OAuth2ServiceProvider extends OAuthServiceProvider {
 	
 	/**
 	 * @param authorizationUrl
 	 * @param accessTokenUrl
 	 */
 	public OAuth2ServiceProvider(String authorizationUrl, String accessTokenUrl) {
-		this.authorizationUrl = authorizationUrl;
-		this.accessTokenUrl = accessTokenUrl;
+		super(authorizationUrl, accessTokenUrl);
 	}
-	
-	/**
-	 * @return the authorizationUrl
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
 	 */
-	public String getAuthorizationUrl() {
-		return authorizationUrl;
-	}
-	
-	/**
-	 * @param authorizationUrl the authorizationUrl to set
-	 */
-	public void setAuthorizationUrl(String authorizationUrl) {
-		this.authorizationUrl = authorizationUrl;
-	}
-	
-	/**
-	 * @return the accessTokenUrl
-	 */
-	public String getAccessTokenUrl() {
-		return accessTokenUrl;
-	}
-	
-	/**
-	 * @param accessTokenUrl the accessTokenUrl to set
-	 */
-	public void setAccessTokenUrl(String accessTokenUrl) {
-		this.accessTokenUrl = accessTokenUrl;
+	@Override
+	public String toString() {
+		return this.getClass().getName() + " [getAuthorizationUrl()="
+				+ getAuthorizationUrl() + ", getAccessTokenUrl()="
+				+ getAccessTokenUrl() + "]";
 	}
 }

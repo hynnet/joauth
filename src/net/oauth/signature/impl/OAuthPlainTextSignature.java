@@ -20,7 +20,7 @@ import java.security.GeneralSecurityException;
 
 import net.oauth.signature.ConsumerSecretBasedOAuthSignature;
 import net.oauth.signature.OAuthSignatureMethod;
-import net.oauth.util.OAuthUtil;
+import net.oauth.util.OAuth1Util;
 
 /**
  * @author Bienfait Sindi
@@ -52,6 +52,6 @@ public class OAuthPlainTextSignature extends ConsumerSecretBasedOAuthSignature {
 	public String sign(String data) throws GeneralSecurityException {
 		// TODO Auto-generated method stub
 		String secret = getConsumerSecret() + "&" + ((getTokenSecret() == null || getTokenSecret().isEmpty()) ? "" : getTokenSecret());
-		return OAuthUtil.encode(secret);
+		return OAuth1Util.encode(secret);
 	}
 }
