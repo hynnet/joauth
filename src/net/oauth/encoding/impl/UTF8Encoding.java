@@ -41,6 +41,7 @@ public class UTF8Encoding implements OAuthEncoding {
 		String data = null;
 		
 		try {
+			encodedData = encodedData.replaceAll("%2A", "*").replaceAll("%20", "+").replaceAll("%7E", "~");
 			data = URLDecoder.decode(encodedData, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block

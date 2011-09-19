@@ -26,9 +26,9 @@ import net.oauth.signature.OAuthSignature;
 import net.oauth.signature.impl.OAuthHmacSha1Signature;
 import net.oauth.signature.impl.OAuthPlainTextSignature;
 import net.oauth.signature.impl.OAuthRsaSha1Signature;
-import net.oauth.token.v1.AccessToken;
-import net.oauth.token.v1.AuthorizedToken;
-import net.oauth.token.v1.RequestToken;
+import net.oauth.token.oauth1.AccessToken;
+import net.oauth.token.oauth1.AuthorizedToken;
+import net.oauth.token.oauth1.RequestToken;
 
 import org.apache.log4j.Logger;
 

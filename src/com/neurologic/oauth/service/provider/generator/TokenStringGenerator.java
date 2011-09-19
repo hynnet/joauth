@@ -24,5 +24,5 @@ package com.neurologic.oauth.service.provider.generator;
 public interface TokenStringGenerator {
 	
 	public String generateToken();
-	public String generateToken(String data);
+	public String generateToken(byte[] data);
 }

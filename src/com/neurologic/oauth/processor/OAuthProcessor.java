@@ -19,12 +19,16 @@ package com.neurologic.oauth.processor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.neurologic.oauth.config.ModuleConfig;
+
 /**
  * @author Buhake Sindi
  * @since 27 June 2011
  *
  */
 public interface OAuthProcessor {
-
+	
+	public void init(ModuleConfig moduleConfig);
+	public void destroy();
 	public void process(HttpServletRequest request, HttpServletResponse response) throws Exception;
 }

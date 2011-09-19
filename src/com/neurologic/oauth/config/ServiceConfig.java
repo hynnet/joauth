@@ -33,6 +33,8 @@ public class ServiceConfig implements Serializable {
 	private String serviceClass;
 	private String refOAuth;
 	private SuccessConfig successConfig;
+	private LoginRedirectConfig loginRedirectConfig;
+	private ErrorRedirectConfig errorRedirectConfig;
 
 	/**
 	 * @return the path
@@ -88,5 +90,33 @@ public class ServiceConfig implements Serializable {
 	 */
 	public void setSuccessConfig(SuccessConfig successConfig) {
 		this.successConfig = successConfig;
+	}
+
+	/**
+	 * @return the loginRedirectConfig
+	 */
+	public LoginRedirectConfig getLoginRedirectConfig() {
+		return loginRedirectConfig;
+	}
+
+	/**
+	 * @param loginRedirectConfig the loginRedirectConfig to set
+	 */
+	public void setLoginRedirectConfig(LoginRedirectConfig loginRedirectConfig) {
+		this.loginRedirectConfig = loginRedirectConfig;
+	}
+
+	/**
+	 * @return the errorRedirectConfig
+	 */
+	public ErrorRedirectConfig getErrorRedirectConfig() {
+		return errorRedirectConfig;
+	}
+
+	/**
+	 * @param errorRedirectConfig the errorRedirectConfig to set
+	 */
+	public void setErrorRedirectConfig(ErrorRedirectConfig errorRedirectConfig) {
+		this.errorRedirectConfig = errorRedirectConfig;
 	}
 }
