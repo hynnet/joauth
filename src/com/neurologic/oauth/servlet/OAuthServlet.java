@@ -55,7 +55,7 @@ public class OAuthServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		try {
 			if (logger.isInfoEnabled()) {
-				logger.info("initializing...");
+				logger.info("Initializing...");
 			}
 			
 			String config = getServletConfig().getInitParameter("config");
@@ -85,10 +85,18 @@ public class OAuthServlet extends HttpServlet {
 	public void destroy() {
 		// TODO Auto-generated method stub
 		if (logger.isInfoEnabled()) {
-			logger.info("destroying...");
+			logger.info("Destroying...");
 		}
 
 		getServletContext().removeAttribute(Globals.MODULE_KEY);
+		OAuthProcessor processor = getOAuthProcessor();
+		if (processor != null) {
+			processor.destroy();
+			
+			//Remove from Servlet Context
+			getServletContext().removeAttribute(Globals.PROCESSOR_KEY);
+			processor = null;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -110,24 +118,59 @@ public class OAuthServlet extends HttpServlet {
 	}
 	
 	private void process(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		if (logger.isTraceEnabled()) {
-			logger.trace("process() via the " + request.getMethod() + " method.");
+		if (logger.isInfoEnabled()) {
+			logger.info("process() via the " + request.getMethod() + " method.");
 		}
 		
 		try {	
-			OAuthProcessor processor = new DefaultOAuthProcessor((ModuleConfig) getServletContext().getAttribute(Globals.MODULE_KEY));
+			OAuthProcessor processor = getOAuthProcessor();
+			if (processor == null) {
+				ModuleConfig moduleConfig = getModuleConfig();
+				if (moduleConfig == null) {
+					moduleConfig = initializeModuleConfig(oauthConfigFile);
+				}
+				
+				processor = initializeProcessor(moduleConfig);
+			}
+			
+			//Now, we process
 			processor.process(request, response);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
+			String message = e.getLocalizedMessage();
+			logger.error(message, e);
 			throw new ServletException(e.getLocalizedMessage(), e);
 		}
 	}
 	
 	private ModuleConfig initializeModuleConfig(String oauthConfigFile) throws Exception {
-		ModuleConfigFactory factory = new ModuleConfigFactory();
-		ModuleConfig module = factory.createModuleConfig(getServletContext().getResourceAsStream(oauthConfigFile));
-		getServletContext().setAttribute(Globals.MODULE_KEY, module);
+		ModuleConfig moduleConfig = getModuleConfig();
+		if (moduleConfig == null) {
+			ModuleConfigFactory factory = new ModuleConfigFactory();
+			moduleConfig = factory.createModuleConfig(getServletContext().getResourceAsStream(oauthConfigFile));
+			getServletContext().setAttribute(Globals.MODULE_KEY, moduleConfig);
+		}
 		
-		return module;
+		return moduleConfig;
+	}
+	
+	private ModuleConfig getModuleConfig() {
+		return (ModuleConfig) getServletContext().getAttribute(Globals.MODULE_KEY);
+	}
+	
+	private OAuthProcessor initializeProcessor(ModuleConfig moduleConfig) throws ServletException {
+		OAuthProcessor processor = getOAuthProcessor();
+		if (processor == null) {
+			processor = new DefaultOAuthProcessor();
+			
+			processor.init(moduleConfig);
+			getServletContext().setAttribute(Globals.PROCESSOR_KEY, processor);
+		}
+		
+		return processor;
+	}
+	
+	private OAuthProcessor getOAuthProcessor() {
+		return (OAuthProcessor) getServletContext().getAttribute(Globals.PROCESSOR_KEY);
 	}
 }

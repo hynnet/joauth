@@ -180,7 +180,7 @@ public class OAuthParameters implements Serializable {
 		return parameterMap;
 	}
 	
-	public String getOAuthParameterValue(String key) {
+	public String getValue(String key) {
 		return parameterMap.get(key);
 	}
 	

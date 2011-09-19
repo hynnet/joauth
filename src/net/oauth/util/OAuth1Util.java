@@ -20,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import net.oauth.encoding.OAuthEncoding;
@@ -89,13 +90,12 @@ public class OAuth1Util {
 		StringBuffer sb = new StringBuffer();
 		synchronized (treeMap) {
 			
-			for (String key : treeMap.keySet()) {
+			for (Entry<String, String> entry : treeMap.entrySet()) {
 				if (sb.length() > 0) {
 					sb.append("&");
 				}
 				
-				String value = parameters.get(key);
-				sb.append(encode(key)).append("=").append(encode(value));
+				sb.append(encode(entry.getKey())).append("=").append(encode(entry.getValue()));
 			}
 		}
 		
@@ -129,17 +129,16 @@ public class OAuth1Util {
 		if (parameters == null || parameters.isEmpty()) {
 			return "";
 		}
-		
-		if (parameters.containsKey(OAuthParameters.OAUTH_REALM)) {
-			kvp.add(OAuthParameters.OAUTH_REALM, parameters.get(OAuthParameters.OAUTH_REALM));
-		}
+//		
+//		if (parameters.containsKey(OAuthParameters.OAUTH_REALM)) {
+//			kvp.add(OAuthParameters.OAUTH_REALM, parameters.get(OAuthParameters.OAUTH_REALM));
+//		}
 		
 		synchronized (parameters) {
-			for (String key : parameters.keySet()) {
+			for (Entry<String, String> entry : parameters.entrySet()) {
 				
-				if (OAuthParameters.OAUTH_REALM.equals(key)) continue;
-				String value = parameters.get(key);
-				kvp.add(key, value);
+//				if (OAuthParameters.OAUTH_REALM.equals(key)) continue;
+				kvp.add(entry.getKey(), entry.getValue());
 			}
 		}
 		
@@ -149,5 +148,10 @@ public class OAuth1Util {
 	public static String encode(String s) {
 		OAuthEncoding encoding = new UTF8Encoding();
 		return encoding.encode(s);
+	}
+	
+	public static String decode(String s) {
+		OAuthEncoding encoding = new UTF8Encoding();
+		return encoding.decode(s);
 	}
 }

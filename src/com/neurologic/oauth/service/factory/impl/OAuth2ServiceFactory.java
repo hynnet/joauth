@@ -20,54 +20,24 @@ import net.oauth.consumer.OAuth2Consumer;
 import net.oauth.provider.OAuth2ServiceProvider;
 
 import com.neurologic.oauth.config.ConsumerConfig;
+import com.neurologic.oauth.config.ManagerConfig;
 import com.neurologic.oauth.config.ProviderConfig;
-import com.neurologic.oauth.service.OAuthService;
-import com.neurologic.oauth.service.consumer.OAuth2Service;
-import com.neurologic.oauth.service.factory.OAuthServiceFactory;
-import com.neurologic.oauth.service.provider.v2.OAuth2ProviderService;
-import com.neurologic.oauth.util.ClassLoaderUtil;
+import com.neurologic.oauth.service.provider.manager.OAuth2TokenManager;
+import com.neurologic.oauth.util.ApplicationUtil;
 
 /**
  * @author Bienfait Sindi
  * @since 06 December 2010
  *
  */
-public class OAuth2ServiceFactory implements OAuthServiceFactory {
+public class OAuth2ServiceFactory extends AbstactOAuthServiceFactory<OAuth2ServiceProvider, OAuth2TokenManager , OAuth2Consumer> {
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.factory.OAuthServiceFactory#createOAuthProviderService(java.lang.String, java.lang.Class, com.neurologic.oauth.config.ProviderConfig)
+	 * @see com.neurologic.oauth.service.factory.impl.AbstactOAuthServiceFactory#createOAuthServiceProvider(com.neurologic.oauth.config.ProviderConfig, java.lang.String)
 	 */
 	@Override
-	public OAuthService createOAuthProviderService(String oauthName, Class<?> serviceClass, ProviderConfig providerConfig) throws Exception {
+	protected OAuth2ServiceProvider createOAuthServiceProvider(ProviderConfig providerConfig, String oauthName) throws Exception {
 		// TODO Auto-generated method stub
-		if (!OAuth2ProviderService.class.isAssignableFrom(serviceClass)) {
-			throw new Exception("Class '" + serviceClass.getName() + "' is not an instance of '" + OAuth2ProviderService.class.getName() + "'.");
-		}
-		
-		OAuth2ProviderService service = (OAuth2ProviderService) serviceClass.newInstance();
-		service.setOAuthServiceProvider(createServiceProvider(providerConfig, oauthName));
-
-		return (OAuthService) service;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.factory.OAuthServiceFactory#createOAuthConsumerService(java.lang.String, java.lang.Class, com.neurologic.oauth.config.ProviderConfig, com.neurologic.oauth.config.ConsumerConfig)
-	 */
-	@Override
-	public OAuthService createOAuthConsumerService(String oauthName, Class<?> serviceClass, ProviderConfig providerConfig, ConsumerConfig consumerConfig) throws Exception {
-		// TODO Auto-generated method stub
-		if (!OAuth2Service.class.isAssignableFrom(serviceClass)) {
-			throw new Exception("Class '" + serviceClass.getName() + "' is not an instance of '" + OAuth2Service.class.getName() + "'.");
-		}
-		
-		OAuth2Consumer consumer = new OAuth2Consumer(consumerConfig.getKey(), consumerConfig.getSecret(), createServiceProvider(providerConfig, oauthName));
-		OAuth2Service service = (OAuth2Service) serviceClass.newInstance();
-		service.setOAuthConsumer(consumer);
-		
-		return (OAuthService) service;
-	}
-	
-	private OAuth2ServiceProvider createServiceProvider(ProviderConfig providerConfig, String oauthName) throws Exception {
 		OAuth2ServiceProvider serviceProvider = null;
 		if (providerConfig.getClassName() == null || providerConfig.getClassName().isEmpty()) {
 			if (providerConfig.getAuthorizationUrl() == null && providerConfig.getAccessTokenUrl() == null) {
@@ -76,18 +46,56 @@ public class OAuth2ServiceFactory implements OAuthServiceFactory {
 			
 			serviceProvider = new OAuth2ServiceProvider(providerConfig.getAuthorizationUrl(), providerConfig.getAccessTokenUrl());
 		} else {
-			Class<?> serviceProviderClass = ClassLoaderUtil.getInstance().getClassLoader().loadClass(providerConfig.getClassName());
+			Class<OAuth2ServiceProvider> serviceProviderClass = ApplicationUtil.applicationClass(providerConfig.getClassName());
 			if (serviceProviderClass == null) {
 				throw new Exception("Provider class '" + providerConfig.getClassName() + "' not found.");
 			}
 			
+			//Just in case...
 			if (!OAuth2ServiceProvider.class.isAssignableFrom(serviceProviderClass)) {
 				throw new Exception("Provider class '" + providerConfig.getClassName() + "' is not an instance of '" + OAuth2ServiceProvider.class.getName() + "'");
 			}
 			
-			serviceProvider = (OAuth2ServiceProvider) serviceProviderClass.newInstance();
+			serviceProvider = serviceProviderClass.newInstance();
 		}
 		
 		return serviceProvider;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.neurologic.oauth.service.factory.impl.AbstactOAuthServiceFactory#createOAuthTokenManager(com.neurologic.oauth.config.ManagerConfig, java.lang.String)
+	 */
+	@Override
+	protected OAuth2TokenManager createOAuthTokenManager(ManagerConfig managerConfig, String oauthName) throws Exception {
+		// TODO Auto-generated method stub
+		OAuth2TokenManager manager = null;
+		if (managerConfig.getClassName() == null || managerConfig.getClassName().isEmpty()) {
+			logger.info("No 'class' attribute set, using default '" + OAuth2TokenManager.class.getName() + "'.");
+			manager = new OAuth2TokenManager();
+		} else {
+			logger.info("Creating oauth manager '" + managerConfig.getClassName() + "'.");
+			Class<?> managerClass = ApplicationUtil.applicationClass(managerConfig.getClassName());
+			if (managerClass == null) {
+				throw new Exception("Manager class '" + managerConfig.getClassName() + "' not found.");
+			}
+			
+			//Just in case...
+			if (!OAuth2TokenManager.class.isAssignableFrom(managerClass)) {
+				throw new Exception("Manager class '" + managerConfig.getClassName() + "' is not an instance of '" + OAuth2TokenManager.class.getName() + "'");
+			}
+			
+			manager = (OAuth2TokenManager) managerClass.newInstance();
+		}
+		
+		return manager;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.neurologic.oauth.service.factory.impl.AbstactOAuthServiceFactory#createOAuthConsumer(com.neurologic.oauth.config.ConsumerConfig, com.neurologic.oauth.config.ProviderConfig, java.lang.String)
+	 */
+	@Override
+	protected OAuth2Consumer createOAuthConsumer(ConsumerConfig consumerConfig,	ProviderConfig providerConfig, String oauthName) throws Exception {
+		// TODO Auto-generated method stub
+		return new OAuth2Consumer(consumerConfig.getKey(), consumerConfig.getSecret(), createOAuthServiceProvider(providerConfig, oauthName));
 	}
 }

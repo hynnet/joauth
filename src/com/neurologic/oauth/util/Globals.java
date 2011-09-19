@@ -24,6 +24,8 @@ package com.neurologic.oauth.util;
 public interface Globals {
 
 	public static final String MODULE_KEY = "com.neurologic.oauth.MODULE_KEY";
-	public static final String SESSION_OAUTH1_ACCESS_TOKEN = "com.neurologic.oauth.oauth1_access_token";
-	public static final String SESSION_OAUTH2_ACCESS_TOKEN = "com.neurologic.oauth.oauth2_access_token";
+	public static final String PROCESSOR_KEY = "com.neurologic.oauth.PROCESSOR_KEY";
+	public static final String EXCEPTION_KEY = "com.neurologic.oauth.EXCEPTION_KEY";
+	public static final String SESSION_OAUTH1_ACCESS_TOKEN = "com.neurologic.oauth.oauth1.access_token";
+	public static final String SESSION_OAUTH2_ACCESS_TOKEN = "com.neurologic.oauth.oauth2.access_token";
 }

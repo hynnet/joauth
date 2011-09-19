@@ -19,8 +19,8 @@ package net.oauth.util;
 import java.util.Map;
 
 import net.oauth.parameters.OAuth2Parameters;
-import net.oauth.token.v2.AccessToken;
-import net.oauth.token.v2.AuthorizationToken;
+import net.oauth.token.oauth2.AccessToken;
+import net.oauth.token.oauth2.AuthorizationToken;
 
 /**
  * @author Bienfait Sindi

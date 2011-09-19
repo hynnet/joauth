@@ -17,6 +17,7 @@
 package com.neurologic.oauth.service.factory;
 
 import com.neurologic.oauth.config.ConsumerConfig;
+import com.neurologic.oauth.config.ManagerConfig;
 import com.neurologic.oauth.config.ProviderConfig;
 import com.neurologic.oauth.service.OAuthService;
 
@@ -27,6 +28,6 @@ import com.neurologic.oauth.service.OAuthService;
  */
 public interface OAuthServiceFactory {
 
-	public OAuthService createOAuthProviderService(String oauthName, Class<?> serviceClass, ProviderConfig providerConfig) throws Exception;
-	public OAuthService createOAuthConsumerService(String oauthName, Class<?> serviceClass, ProviderConfig providerConfig, ConsumerConfig consumerConfig) throws Exception;
+	public OAuthService createOAuthProviderService(String oauthName, String serviceClassName, ProviderConfig providerConfig, ManagerConfig managerConfig) throws Exception;
+	public OAuthService createOAuthConsumerService(String oauthName, String serviceClassName, ProviderConfig providerConfig, ConsumerConfig consumerConfig) throws Exception;
 }

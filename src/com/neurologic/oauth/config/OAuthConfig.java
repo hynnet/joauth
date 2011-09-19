@@ -34,6 +34,7 @@ public class OAuthConfig implements Serializable {
 	private boolean provider = false;
 	private ConsumerConfig consumerConfig;
 	private ProviderConfig providerConfig;
+	private ManagerConfig managerConfig;
 	
 	/**
 	 * @return the name
@@ -105,6 +106,20 @@ public class OAuthConfig implements Serializable {
 		this.providerConfig = providerConfig;
 	}
 
+	/**
+	 * @return the managerConfig
+	 */
+	public ManagerConfig getManagerConfig() {
+		return managerConfig;
+	}
+
+	/**
+	 * @param managerConfig the managerConfig to set
+	 */
+	public void setManagerConfig(ManagerConfig managerConfig) {
+		this.managerConfig = managerConfig;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -114,6 +129,8 @@ public class OAuthConfig implements Serializable {
 		int result = 1;
 		result = prime * result
 				+ ((consumerConfig == null) ? 0 : consumerConfig.hashCode());
+		result = prime * result
+				+ ((managerConfig == null) ? 0 : managerConfig.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		result = prime * result + (provider ? 1231 : 1237);
 		result = prime * result
@@ -138,6 +155,11 @@ public class OAuthConfig implements Serializable {
 			if (other.consumerConfig != null)
 				return false;
 		} else if (!consumerConfig.equals(other.consumerConfig))
+			return false;
+		if (managerConfig == null) {
+			if (other.managerConfig != null)
+				return false;
+		} else if (!managerConfig.equals(other.managerConfig))
 			return false;
 		if (name == null) {
 			if (other.name != null)

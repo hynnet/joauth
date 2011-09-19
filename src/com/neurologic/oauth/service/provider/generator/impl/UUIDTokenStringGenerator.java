@@ -33,15 +33,21 @@ public class UUIDTokenStringGenerator implements TokenStringGenerator {
 	@Override
 	public String generateToken() {
 		// TODO Auto-generated method stub
-		return UUID.randomUUID().toString();
+		synchronized (this) {
+			return UUID.randomUUID().toString();
+		}
 	}
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.provider.generator.TokenStringGenerator#generateToken(java.lang.String)
+	 * @see com.neurologic.oauth.service.provider.generator.TokenStringGenerator#generateToken(byte[])
 	 */
 	@Override
-	public String generateToken(String data) {
+	public String generateToken(byte[] data) {
 		// TODO Auto-generated method stub
-		return UUID.nameUUIDFromBytes(data.getBytes()).toString();
+		synchronized (this) {
+//			SecureRandom random = new SecureRandom();
+//			random.nextBytes(data);
+			return UUID.nameUUIDFromBytes(data).toString();
+		}
 	}
 }

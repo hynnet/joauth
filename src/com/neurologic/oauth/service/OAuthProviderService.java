@@ -16,15 +16,17 @@
  */
 package com.neurologic.oauth.service;
 
-import net.oauth.provider.OAuthServiceProvider;
+import com.neurologic.oauth.service.provider.manager.OAuthTokenManager;
+
 
 /**
  * @author Buhake Sindi
  * @since 30 June 2011
  *
  */
-public interface OAuthProviderService<T extends OAuthServiceProvider> extends OAuthService {
+public interface OAuthProviderService<T extends OAuthTokenManager> extends OAuthService {
 
 	public static final String HTTP_HEADER_AUTHORIZATION = "Authorization";
-	public void setOAuthServiceProvider(T serviceProvider);
+//	public void setOAuthServiceProvider(T serviceProvider);
+	public void setOauthTokenManager(T oauthTokenManager);
 }

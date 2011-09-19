@@ -31,9 +31,9 @@ import net.oauth.parameters.QueryKeyValuePair;
 import net.oauth.provider.OAuth1ServiceProvider;
 import net.oauth.signature.ConsumerSecretBasedOAuthSignature;
 import net.oauth.signature.OAuthSignature;
-import net.oauth.token.v1.AccessToken;
-import net.oauth.token.v1.AuthorizedToken;
-import net.oauth.token.v1.RequestToken;
+import net.oauth.token.oauth1.AccessToken;
+import net.oauth.token.oauth1.AuthorizedToken;
+import net.oauth.token.oauth1.RequestToken;
 import net.oauth.util.OAuth1Util;
 
 import org.apache.log4j.Logger;

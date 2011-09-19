@@ -30,7 +30,7 @@ import net.oauth.enums.ResponseType;
 import net.oauth.exception.OAuthException;
 import net.oauth.parameters.OAuth2Parameters;
 import net.oauth.provider.OAuth2ServiceProvider;
-import net.oauth.token.v2.AccessToken;
+import net.oauth.token.oauth2.AccessToken;
 import net.oauth.util.OAuth1Util;
 import net.oauth.util.OAuth2Util;
 
