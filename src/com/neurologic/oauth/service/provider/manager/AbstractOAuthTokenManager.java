@@ -16,11 +16,17 @@ import com.neurologic.oauth.service.provider.manager.store.data.ConsumerKeyStore
  */
 public abstract class AbstractOAuthTokenManager implements OAuthTokenManager {
 
+	protected static final long MILLISECOND = 1L;
+	protected static final long SECOND = 1000 * MILLISECOND;
+	protected static final long MINUTE  = 60 * SECOND;
+	protected static final long HOUR = 60 * MINUTE;
+	protected static final long DAY = 24 * HOUR;
+	
 	protected final Logger logger = Logger.getLogger(this.getClass());
 	private DataStore<ConsumerKeyStoreData> consumerKeyStore;
 	private TokenStringGenerator accessTokenGenerator;
-	private long authorizedTokenValidity = 30 * 60 * 1000;	//30 minutes
-	private long accessTokenValidity = 24 * 60 * 60 * 1000;	//24 hours
+	private long authorizedTokenValidity = 30 * MINUTE;	//30 minutes
+	private long accessTokenValidity = DAY;	//24 hours
 	
 	/**
 	 * @return the consumerKeyStore

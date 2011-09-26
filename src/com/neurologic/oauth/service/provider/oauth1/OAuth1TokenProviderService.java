@@ -34,9 +34,8 @@ import com.neurologic.oauth.service.provider.manager.OAuth1TokenManager;
  * @since 11 July 2011
  *
  */
-public abstract class OAuth1TokenProviderService extends OAuthTokenProviderService<OAuth1ServiceProvider, OAuth1TokenManager> {
+public abstract class OAuth1TokenProviderService extends OAuthTokenProviderService<OAuth1TokenManager, OAuth1ServiceProvider> {
 
-	protected static final String CONTENT_TYPE_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
 	private static final String OAUTH_AUTHORIZATION_HEADER_START = "OAuth ";
 
 	protected OAuthParameters getOAuthAuthorizationParameters(HttpServletRequest request) throws OAuthAuthorizationException {

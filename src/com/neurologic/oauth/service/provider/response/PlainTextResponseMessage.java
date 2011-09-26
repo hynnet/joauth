@@ -8,11 +8,11 @@ package com.neurologic.oauth.service.provider.response;
  * @since 08 September 2011
  *
  */
-public class DefaultOAuthResponseMessage extends AbstractOAuthResponseMessage {
+public class PlainTextResponseMessage extends AbstractOAuthResponseMessage {
 
 	private String message;
 	
-	public DefaultOAuthResponseMessage() {
+	public PlainTextResponseMessage() {
 		super();
 		setStatusCode(200);
 		setContentType(CONTENT_TYPE_TEXT_PLAIN);
@@ -21,7 +21,7 @@ public class DefaultOAuthResponseMessage extends AbstractOAuthResponseMessage {
 	/**
 	 * @param message
 	 */
-	public DefaultOAuthResponseMessage(String message) {
+	public PlainTextResponseMessage(String message) {
 		this();
 		this.message = message;
 	}

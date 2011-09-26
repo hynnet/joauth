@@ -19,6 +19,8 @@ package net.oauth.token.oauth2;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import net.oauth.enums.TokenType;
+
 /**
  * @author Bienfait Sindi
  * @since 24 May 2011
@@ -31,7 +33,7 @@ public class AccessToken extends OAuthToken {
 	 */
 	private static final long serialVersionUID = -4419729971477912556L;
 	private String accessToken;
-	private String tokenType;
+	private TokenType tokenType;
 	private String refreshToken;
 	private Map<String, String> additionalParameters;
 	
@@ -52,14 +54,14 @@ public class AccessToken extends OAuthToken {
 	/**
 	 * @return the tokenType
 	 */
-	public String getTokenType() {
+	public TokenType getTokenType() {
 		return tokenType;
 	}
 	
 	/**
 	 * @param tokenType the tokenType to set
 	 */
-	public void setTokenType(String tokenType) {
+	public void setTokenType(TokenType tokenType) {
 		this.tokenType = tokenType;
 	}
 	

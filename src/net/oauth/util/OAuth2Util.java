@@ -18,6 +18,7 @@ package net.oauth.util;
 
 import java.util.Map;
 
+import net.oauth.enums.TokenType;
 import net.oauth.parameters.OAuth2Parameters;
 import net.oauth.token.oauth2.AccessToken;
 import net.oauth.token.oauth2.AuthorizationToken;
@@ -29,6 +30,7 @@ import net.oauth.token.oauth2.AuthorizationToken;
  */
 public class OAuth2Util {
 	
+	private static final String TOKEN_TYPE = "token_type";
 	private static final String EXPIRES_IN = "expires_in";
 	
 	private OAuth2Util() {}
@@ -91,8 +93,8 @@ public class OAuth2Util {
 				
 				if (OAuth2Parameters.ACCESS_TOKEN.equals(key)) {
 					accessToken.setAccessToken(value);
-				} else if ("token_type".equals(key)) {
-					accessToken.setTokenType(value);
+				} else if (TOKEN_TYPE.equals(key)) {
+					accessToken.setTokenType(TokenType.of(value));
 				} else if (EXPIRES_IN.equals(key)) {
 					accessToken.setExpiresIn(Integer.parseInt(value));
 				} else if (OAuth2Parameters.REFRESH_TOKEN.equals(key)) {
@@ -101,7 +103,7 @@ public class OAuth2Util {
 					accessToken.setScope(value);
 				} else if (OAuth2Parameters.STATE.equals(key)) {
 					accessToken.setState(value);
-				}else {
+				} else {
 					accessToken.addAdditionalParameter(key, value);
 				}
 			}

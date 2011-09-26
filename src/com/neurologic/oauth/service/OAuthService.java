@@ -28,5 +28,6 @@ import net.oauth.exception.OAuthException;
  */
 public interface OAuthService {
 
+	public void setOAuthName(String oauthName);
 	public void execute(HttpServletRequest request, HttpServletResponse response) throws OAuthException;
 }

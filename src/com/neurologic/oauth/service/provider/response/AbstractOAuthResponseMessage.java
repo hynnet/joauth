@@ -16,6 +16,15 @@ public abstract class AbstractOAuthResponseMessage implements OAuthResponseMessa
 	private int statusCode;
 	private String contentType;
 	
+	/**
+	 * 
+	 */
+	public AbstractOAuthResponseMessage() {
+		super();
+		// TODO Auto-generated constructor stub
+		setCacheControl("no-cache");
+	}
+
 	/* (non-Javadoc)
 	 * @see com.neurologic.oauth.service.provider.response.OAuthResponseMessage#setCacheControl(java.lang.String)
 	 */

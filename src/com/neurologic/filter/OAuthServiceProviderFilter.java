@@ -21,12 +21,22 @@ import org.apache.log4j.Logger;
  * @since 15 August 2011
  *
  */
-public class OAuthServiceProviderFilter implements Filter {
+public abstract class OAuthServiceProviderFilter implements Filter {
 	
-	private static final int SC_BAD_REQUEST = HttpServletResponse.SC_BAD_REQUEST;
-	private static final int SC_UNAUTHORIZED = HttpServletResponse.SC_UNAUTHORIZED;
-	private static final Logger logger = Logger.getLogger(OAuthServiceProviderFilter.class);
+	protected final Logger logger = Logger.getLogger(OAuthServiceProviderFilter.class);
+	private String realm;
 
+	/* (non-Javadoc)
+	 * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
+	 */
+	@Override
+	public void init(FilterConfig filterConfig) throws ServletException {
+		// TODO Auto-generated method stub
+		if (logger.isInfoEnabled()) {
+			logger.info("Initializing...");
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see javax.servlet.Filter#destroy()
 	 */
@@ -39,35 +49,22 @@ public class OAuthServiceProviderFilter implements Filter {
 
 	}
 
+	/**
+	 * @return the realm
+	 */
+	protected String getRealm() {
+		return realm;
+	}
+
 	/* (non-Javadoc)
 	 * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)
 	 */
 	@Override
-	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
 		// TODO Auto-generated method stub
-		if (servletRequest != null && servletResponse != null
-			&& servletRequest instanceof HttpServletRequest && servletResponse instanceof HttpServletResponse) {
-			HttpServletRequest request = (HttpServletRequest) servletRequest;
-			HttpServletResponse response = (HttpServletResponse) servletResponse;
-			
-			//Do our filtering....
-			
-			
-			//Finally,
-			filterChain.doFilter(request, response);
-		}
-
+		doFilter((HttpServletRequest)request, (HttpServletResponse)response, filterChain);
 	}
 
-	/* (non-Javadoc)
-	 * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
-	 */
-	@Override
-	public void init(FilterConfig filterConfig) throws ServletException {
-		// TODO Auto-generated method stub
-		if (logger.isInfoEnabled()) {
-			logger.info("Initializing...");
-		}
-	}
-
+	
+	protected abstract void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException;
 }

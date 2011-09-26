@@ -41,7 +41,29 @@ public class UTF8Encoding implements OAuthEncoding {
 		String data = null;
 		
 		try {
-			encodedData = encodedData.replaceAll("%2A", "*").replaceAll("%20", "+").replaceAll("%7E", "~");
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < encodedData.length(); i++) {
+				char percent = encodedData.charAt(i);
+				if ('%' == percent) {
+					char char1 = encodedData.charAt(i + 1);
+					char char2 = encodedData.charAt(i + 2);
+					if ('2' == char1 && 'A' == char2) {
+						sb.append("*");
+						i += 2;
+					} else if ('2' == char1 && '0' == char2) {
+						sb.append("+");
+						i += 2;
+					} else if ('7' == char1 && 'E' == char2) {
+						sb.append("~");
+						i += 2;
+					} else {
+						sb.append(percent).append(char1).append(char2);
+					}
+				} else {
+					sb.append(percent);
+				}
+			}
+			encodedData = sb.toString();
 			data = URLDecoder.decode(encodedData, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block

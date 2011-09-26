@@ -21,7 +21,7 @@ import com.neurologic.oauth.service.provider.response.OAuthResponseMessage;
  * @since 15 August 2011
  *
  */
-public abstract class OAuthTokenProviderService<SP extends OAuthServiceProvider, TM extends OAuthTokenManager> extends AbstractOAuthProviderService<TM> {
+public abstract class OAuthTokenProviderService<TM extends OAuthTokenManager, SP extends OAuthServiceProvider> extends AbstractOAuthProviderService<TM> {
 	
 	protected SP serviceProvider;
 	

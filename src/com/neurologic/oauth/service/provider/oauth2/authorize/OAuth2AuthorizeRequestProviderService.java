@@ -44,7 +44,6 @@ public class OAuth2AuthorizeRequestProviderService extends OAuthRedirectProvider
 			onException(e, request);
 		}
 		
-		
 		return null;
 	}
 

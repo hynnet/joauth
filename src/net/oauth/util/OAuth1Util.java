@@ -16,8 +16,6 @@
  */
 package net.oauth.util;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -111,14 +109,12 @@ public class OAuth1Util {
 		String[] parameters = queryString.split("&");
 		if (parameters != null) {
 			for (String parameter : parameters) {
-				try {
-					String[] keyValue = parameter.split("=", 2);
-					String name = URLDecoder.decode(keyValue[0], "UTF-8");
-					if (name != null && !name.isEmpty()) {
-						String value = !keyValue[1].isEmpty() ? URLDecoder.decode(keyValue[1], "UTF-8") : "";
-						map.put(name, value);
-					}
-				} catch (UnsupportedEncodingException e) {}
+				String[] keyValue = parameter.split("=", 2);
+				String name = decode(keyValue[0]);
+				if (name != null && !name.isEmpty()) {
+					String value = !keyValue[1].isEmpty() ? decode(keyValue[1]) : "";
+					map.put(name, value);
+				}
 			}
 		}
 		
@@ -129,15 +125,15 @@ public class OAuth1Util {
 		if (parameters == null || parameters.isEmpty()) {
 			return "";
 		}
-//		
-//		if (parameters.containsKey(OAuthParameters.OAUTH_REALM)) {
-//			kvp.add(OAuthParameters.OAUTH_REALM, parameters.get(OAuthParameters.OAUTH_REALM));
-//		}
+		
+		if (parameters.containsKey(OAuthParameters.OAUTH_REALM)) {
+			kvp.add(OAuthParameters.OAUTH_REALM, parameters.get(OAuthParameters.OAUTH_REALM));
+		}
 		
 		synchronized (parameters) {
 			for (Entry<String, String> entry : parameters.entrySet()) {
 				
-//				if (OAuthParameters.OAUTH_REALM.equals(key)) continue;
+				if (OAuthParameters.OAUTH_REALM.equals(entry.getKey())) continue;
 				kvp.add(entry.getKey(), entry.getValue());
 			}
 		}
