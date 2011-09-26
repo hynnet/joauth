@@ -43,6 +43,7 @@ import sun.misc.BASE64Encoder;
 public class OAuthSignatureUtil {
 
 	private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
+	private static final String HMAC_SHA256_ALGORITHM = "HmacSHA256";
 
 	/**
 	 * Computes RFC 2104-compliant HMAC signature.
@@ -61,6 +62,32 @@ public class OAuthSignatureUtil {
 		try {
 			SecretKeySpec secretKey = new SecretKeySpec(key.getBytes("UTF-8"), OAuthSignatureUtil.HMAC_SHA1_ALGORITHM);
 			Mac mac = Mac.getInstance(OAuthSignatureUtil.HMAC_SHA1_ALGORITHM);
+			mac.init(secretKey);
+			hmacData = mac.doFinal(data.getBytes("UTF-8"));
+			return new BASE64Encoder().encode(hmacData);
+		} catch (UnsupportedEncodingException e) {
+			// TODO: handle exception
+			throw new GeneralSecurityException(e);
+		}
+	}
+	
+	/**
+	 * Computes RFC 2104-compliant HMAC-256 signature.
+	 * 
+	 * @param data
+	 *            - the data to be signed.
+	 * @param key
+	 *            - the signing key.
+	 * @return The Base64-encoded RFC 2104-compliant HMAC signature.
+	 * @throws java.security.SignatureException
+	 *             when signature generation fails
+	 */
+	public static String generateHmacSHA256Signature(String data, String key) throws GeneralSecurityException {
+		byte[] hmacData = null;
+
+		try {
+			SecretKeySpec secretKey = new SecretKeySpec(key.getBytes("UTF-8"), OAuthSignatureUtil.HMAC_SHA256_ALGORITHM);
+			Mac mac = Mac.getInstance(OAuthSignatureUtil.HMAC_SHA256_ALGORITHM);
 			mac.init(secretKey);
 			hmacData = mac.doFinal(data.getBytes("UTF-8"));
 			return new BASE64Encoder().encode(hmacData);

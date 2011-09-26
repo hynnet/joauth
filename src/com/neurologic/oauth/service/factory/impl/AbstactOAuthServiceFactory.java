@@ -3,9 +3,9 @@
  */
 package com.neurologic.oauth.service.factory.impl;
 
-import org.apache.log4j.Logger;
-
 import net.oauth.provider.OAuthServiceProvider;
+
+import org.apache.log4j.Logger;
 
 import com.neurologic.oauth.config.ConsumerConfig;
 import com.neurologic.oauth.config.ManagerConfig;
@@ -44,17 +44,16 @@ public abstract class AbstactOAuthServiceFactory<SP extends OAuthServiceProvider
 			logger.info("Creating provider service for class '" + serviceClassName +"'.");
 		}
 		
-		OAuthProviderService<T> providerService = (OAuthProviderService<T>) serviceClass.newInstance();
+		OAuthProviderService providerService = (OAuthProviderService) serviceClass.newInstance();
+		providerService.setOAuthName(oauthName);
 		T tokenManager = OAuthTokenManagerRepository.getInstance().get(oauthName);
 		if (tokenManager == null) {
 			tokenManager = createOAuthTokenManager(managerConfig, oauthName);
 			OAuthTokenManagerRepository.getInstance().put(oauthName, tokenManager);
 		}
-		providerService.setOauthTokenManager(tokenManager);
-		if (providerService != null) {
-			if (providerService instanceof OAuthTokenProviderService) {
-				((OAuthTokenProviderService<SP, T>)providerService).setOAuthServiceProvider(createOAuthServiceProvider(providerConfig, oauthName));
-			}
+		
+		if (providerService instanceof OAuthTokenProviderService) {
+			((OAuthTokenProviderService<T, SP>)providerService).setOAuthServiceProvider(createOAuthServiceProvider(providerConfig, oauthName));
 		}
 		
 		return providerService;

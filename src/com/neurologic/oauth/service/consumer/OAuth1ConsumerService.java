@@ -32,14 +32,12 @@ import net.oauth.token.oauth1.RequestToken;
 
 import org.apache.log4j.Logger;
 
-import com.neurologic.oauth.service.OAuthConsumerService;
-
 /**
  * @author Bienfait Sindi
  * @since 27 November 2010
  *
  */
-public abstract class OAuth1ConsumerService implements OAuthConsumerService<OAuth1Consumer, AccessToken> {
+public abstract class OAuth1ConsumerService extends AbstractOAuthConsumerService<OAuth1Consumer, AccessToken> {
 
 	protected final Logger logger = Logger.getLogger(this.getClass());
 	private OAuth1Consumer consumer;

@@ -122,6 +122,9 @@ public class OAuth1Consumer {
 			String baseString = OAuth1Util.getSignatureBaseString(httpRequestMethod, requestTokenUrl, map);
 			oauthParameters.setOAuthSignature(signature.sign(baseString));
 			
+			//clean
+			map.clear(); map = null;
+			
 			//Add realm (if provided)
 			if (realm != null && !realm.isEmpty()) {
 				oauthParameters.setOAuthRealm(realm);

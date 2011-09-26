@@ -10,7 +10,7 @@ import com.neurologic.oauth.service.provider.manager.store.StoreData;
  * @since 19 September 2011
  *
  */
-public class AuthorizationCodeStoreData extends StoreData {
+public class AuthorizationTokenStoreData extends StoreData {
 
 	/**
 	 * 

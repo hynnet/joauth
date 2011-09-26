@@ -32,6 +32,7 @@ public class OAuthParameters implements Serializable {
 	 */
 	private static final long serialVersionUID = -6032618043340507250L;
 	
+	public static final String OAUTH_BODY_HASH = "oauth_body_hash";
 	public static final String OAUTH_CALLBACK = "oauth_callback";
 	public static final String OAUTH_CALLBACK_CONFIRMED = "oauth_callback_confirmed";
 	public static final String OAUTH_CONSUMER_KEY = "oauth_consumer_key";
@@ -65,6 +66,15 @@ public class OAuthParameters implements Serializable {
 					setOAuthParameter(parameter, value);
 				}
 			}
+		}
+	}
+	
+	/**
+	 * @param oauthBodyHash the oauthBodyHash to set
+	 */
+	public void setOAuthBodyHash(String oauthBodyHash) {
+		if (oauthBodyHash != null) {
+			setOAuthParameter(OAUTH_BODY_HASH, oauthBodyHash);
 		}
 	}
 	

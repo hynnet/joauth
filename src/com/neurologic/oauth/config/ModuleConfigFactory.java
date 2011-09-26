@@ -58,7 +58,7 @@ public class ModuleConfigFactory {
 				for (int i = 0; i < oauthList.getLength(); i++) {
 					OAuthConfig oauthConfig = createOAuthConfig((Element) oauthList.item(i));
 					if (config.oauthConfigExists(oauthConfig.getName())) {
-						throw new Exception("Duplicate oauth element with name=\"" + oauthConfig.getName() + "\".");
+						throw new Exception("Duplicate oauth element with name=\"" + oauthConfig.getName() + "\" found.");
 					}
 					config.addOAuthConfig(oauthConfig);
 				}
@@ -69,7 +69,7 @@ public class ModuleConfigFactory {
 				for (int i = 0; i < serviceList.getLength(); i++) {
 					ServiceConfig sConfig = createServiceConfig((Element) serviceList.item(i));
 					if (config.serviceConfigExists(sConfig.getPath())) {
-						throw new Exception("Duplicate service element with path=\"" + sConfig.getPath() + "\".");
+						throw new Exception("Duplicate service element with path=\"" + sConfig.getPath() + "\" found.");
 					}
 					config.addServiceConfig(sConfig);
 				}
@@ -137,9 +137,9 @@ public class ModuleConfigFactory {
 					Element store = (Element) nodeList.item(i);
 					StoreConfig storeConfig = createStoreConfig(store);
 					
-					if (storeConfig != null) { //Rare....
+					if (storeConfig != null) {
 						if (config.getManagerConfig().storeConfigExists(storeConfig.getName())) {
-							throw new Exception("Element 'store' contains name '" + storeConfig.getName() + "'.");
+							throw new Exception("Element 'store' contains a duplicate name '" + storeConfig.getName() + "'.");
 						}
 						
 						//Add it in.
@@ -147,6 +147,13 @@ public class ModuleConfigFactory {
 					}
 				}
 			}
+		}
+		
+		nodeList = element.getElementsByTagName("access");
+		if (nodeList != null && nodeList.getLength() > 0) {
+			Element access = (Element) nodeList.item(0);
+			config.setAccessConfig(new AccessConfig());
+			config.getAccessConfig().setTokenType(access.getAttribute("tokenType"));
 		}
 		
 		return config;

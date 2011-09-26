@@ -12,9 +12,10 @@ import net.oauth.parameters.OAuthParameters;
 import net.oauth.parameters.QueryKeyValuePair;
 import net.oauth.token.oauth1.AccessToken;
 
+import com.neurologic.exception.OAuthAuthorizationException;
 import com.neurologic.oauth.service.provider.manager.OAuth2TokenManager;
 import com.neurologic.oauth.service.provider.oauth2.OAuth2TokenProviderService;
-import com.neurologic.oauth.service.provider.response.DefaultOAuthResponseMessage;
+import com.neurologic.oauth.service.provider.response.PlainTextResponseMessage;
 import com.neurologic.oauth.service.provider.response.ExceptionResponseMessage;
 import com.neurologic.oauth.service.provider.response.OAuthResponseMessage;
 
@@ -32,18 +33,19 @@ public class OAuth2AccessTokenProviderService extends OAuth2TokenProviderService
 	protected OAuthResponseMessage execute(HttpServletRequest request) throws OAuthException {
 		// TODO Auto-generated method stub
 		OAuthResponseMessage oauthMessage = null;
-		try {
-			String requestMethod = request.getMethod();
-			if (!"POST".equals(requestMethod)) {
-				throw new OAuthException("Cannot execute request with " + request.getMethod() + " HTTP method.");
-			}
-			
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			logger.error("Caught exception : ", e);
-			oauthMessage = new ExceptionResponseMessage(e);
+		String requestMethod = request.getMethod();
+		if (!"POST".equals(requestMethod)) {
+			throw new OAuthException("Cannot execute request with " + request.getMethod() + " HTTP method.");
 		}
+		
+		String authorization = getOAuthAuthorizationParameters(request);
+		if (authorization == null) {
+			throw new OAuthAuthorizationException("HTTP " + HTTP_HEADER_AUTHORIZATION + " header required.");
+		}
+		
+		String[] authSplit = authorization.split(":");
+		String secretKey = authSplit[0];
+		String secretPassword = authSplit[1];
 		
 		return oauthMessage;
 	}

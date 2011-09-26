@@ -14,11 +14,9 @@ import net.oauth.token.oauth1.AccessToken;
 
 import com.neurologic.exception.OAuthAuthorizationException;
 import com.neurologic.exception.OAuthRejectedException;
-import com.neurologic.oauth.service.provider.manager.OAuth1TokenManager;
 import com.neurologic.oauth.service.provider.oauth1.OAuth1TokenProviderService;
-import com.neurologic.oauth.service.provider.response.DefaultOAuthResponseMessage;
-import com.neurologic.oauth.service.provider.response.ExceptionResponseMessage;
 import com.neurologic.oauth.service.provider.response.OAuthResponseMessage;
+import com.neurologic.oauth.service.provider.response.PlainTextResponseMessage;
 
 /**
  * @author Buhake Sindi
@@ -33,36 +31,28 @@ public class OAuth1AccessTokenProviderService extends OAuth1TokenProviderService
 	@Override
 	protected OAuthResponseMessage execute(HttpServletRequest request) throws OAuthException {
 		// TODO Auto-generated method stub
-		OAuthResponseMessage oauthMessage = new DefaultOAuthResponseMessage();
-		try {
-			String requestMethod = request.getMethod();
-			if (!"POST".equals(requestMethod)) {
-				throw new OAuthException("Cannot execute request with " + request.getMethod() + " HTTP method.");
-			}
-			
-			String accessTokenUrl = serviceProvider.getAccessTokenUrl();
-			OAuth1TokenManager tokenManager = (OAuth1TokenManager) getOauthTokenManager();
-			OAuthParameters parameters = getOAuthAuthorizationParameters(request);
-			if (!tokenManager.validateOAuthHeaderParameters(requestMethod, accessTokenUrl, parameters)) {
-				throw new OAuthAuthorizationException("Cannot verify oauth authorization: " + request.getHeader(HTTP_HEADER_AUTHORIZATION));
-			}
-			
-			AccessToken accessToken = tokenManager.createAccessToken(requestMethod, accessTokenUrl, parameters);
-			if (accessToken == null) {
-				throw new OAuthAuthorizationException(new OAuthRejectedException("Cannot create access token."));
-			}
-			
-			KeyValuePair kvp = new QueryKeyValuePair();
-			kvp.add(OAuthParameters.OAUTH_TOKEN, accessToken.getToken());
-			kvp.add(OAuthParameters.OAUTH_TOKEN_SECRET, accessToken.getTokenSecret());
-
-			oauthMessage = new DefaultOAuthResponseMessage(kvp.toString());
-			oauthMessage.setStatusCode(HttpServletResponse.SC_OK);			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			logger.error("Caught exception : ", e);
-			oauthMessage = new ExceptionResponseMessage(e);
+		String requestMethod = request.getMethod();
+		if (!"POST".equals(requestMethod)) {
+			throw new OAuthException("Cannot execute request with " + request.getMethod() + " HTTP method.");
 		}
+		
+		String accessTokenUrl = serviceProvider.getAccessTokenUrl();
+		OAuthParameters parameters = getOAuthAuthorizationParameters(request);
+		if (!getOauthTokenManager().validateOAuthHeaderParameters(requestMethod, accessTokenUrl, parameters)) {
+			throw new OAuthAuthorizationException("Cannot verify oauth authorization: " + request.getHeader(HTTP_HEADER_AUTHORIZATION));
+		}
+		
+		AccessToken accessToken = getOauthTokenManager().createAccessToken(requestMethod, accessTokenUrl, parameters);
+		if (accessToken == null) {
+			throw new OAuthAuthorizationException(new OAuthRejectedException("Cannot create access token."));
+		}
+		
+		KeyValuePair kvp = new QueryKeyValuePair();
+		kvp.add(OAuthParameters.OAUTH_TOKEN, accessToken.getToken());
+		kvp.add(OAuthParameters.OAUTH_TOKEN_SECRET, accessToken.getTokenSecret());
+
+		OAuthResponseMessage oauthMessage = new PlainTextResponseMessage(kvp.toString());
+		oauthMessage.setStatusCode(HttpServletResponse.SC_OK);
 		
 		return oauthMessage;
 	}

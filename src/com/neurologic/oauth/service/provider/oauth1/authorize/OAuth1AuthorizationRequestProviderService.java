@@ -10,16 +10,12 @@ import net.oauth.parameters.OAuthParameters;
 
 import com.neurologic.exception.OAuthRejectedException;
 import com.neurologic.exception.StoreException;
-import com.neurologic.oauth.config.ErrorRedirectConfig;
-import com.neurologic.oauth.config.LoginRedirectConfig;
-import com.neurologic.oauth.config.ModuleConfig;
-import com.neurologic.oauth.config.ServiceConfig;
 import com.neurologic.oauth.service.provider.OAuthRedirectProviderService;
 import com.neurologic.oauth.service.provider.manager.OAuth1TokenManager;
 import com.neurologic.oauth.service.provider.manager.store.data.oauth1.RequestTokenStoreData;
 import com.neurologic.oauth.service.provider.response.DefaultRedirectResult;
 import com.neurologic.oauth.service.provider.response.RedirectResult;
-import com.neurologic.oauth.util.Globals;
+import com.neurologic.oauth.util.ModuleConfigUtil;
 
 /**
  * @author Buhake Sindi
@@ -28,25 +24,6 @@ import com.neurologic.oauth.util.Globals;
  */
 public class OAuth1AuthorizationRequestProviderService extends OAuthRedirectProviderService<OAuth1TokenManager> {
 
-	
-	protected final String getLoginRedirectPath(HttpServletRequest request) {
-		
-		String requestPath = request.getPathInfo();
-		ModuleConfig moduleConfig = (ModuleConfig) request.getServletContext().getAttribute(Globals.MODULE_KEY);
-		ServiceConfig serviceConfig = moduleConfig.getServiceConfigByPath(requestPath);
-		LoginRedirectConfig loginRedirectConfig = serviceConfig.getLoginRedirectConfig();
-		return loginRedirectConfig.getPath();
-	}
-	
-	protected final String getErrorRedirectPath(HttpServletRequest request) {
-		
-		String requestPath = request.getPathInfo();
-		ModuleConfig moduleConfig = (ModuleConfig) request.getServletContext().getAttribute(Globals.MODULE_KEY);
-		ServiceConfig serviceConfig = moduleConfig.getServiceConfigByPath(requestPath);
-		ErrorRedirectConfig errorRedirectConfig = serviceConfig.getErrorRedirectConfig();
-		return errorRedirectConfig.getPath();
-	
-	}
 	
 	protected String getAuthorizedTokenCallbackUrl(String token) {
 		String oauthCallback = null;
@@ -82,12 +59,12 @@ public class OAuth1AuthorizationRequestProviderService extends OAuthRedirectProv
 				throw new OAuthRejectedException("Token is authorized.");
 			}
 			
-			redirectPath = getLoginRedirectPath(request);
+			redirectPath = ModuleConfigUtil.getLoginRedirectPath(request);
 		} catch (StoreException e) {
 			// TODO Auto-generated catch block
 			logger.error("StoreException: " + e.getLocalizedMessage(), e);
 			onException(e, request);
-			redirectPath = getErrorRedirectPath(request);
+			redirectPath = ModuleConfigUtil.getErrorRedirectPath(request);
 		}
 		
 		return new DefaultRedirectResult(redirectPath, true, true);

@@ -34,14 +34,12 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.neurologic.oauth.service.OAuthConsumerService;
-
 /**
  * @author Bienfait Sindi
  * @since 30 November 2010
  *
  */
-public abstract class OAuth2ConsumerService implements OAuthConsumerService<OAuth2Consumer, AccessToken> {
+public abstract class OAuth2ConsumerService extends AbstractOAuthConsumerService<OAuth2Consumer, AccessToken> {
 
 	protected final Logger logger = Logger.getLogger(this.getClass());
 	private OAuth2Consumer consumer;

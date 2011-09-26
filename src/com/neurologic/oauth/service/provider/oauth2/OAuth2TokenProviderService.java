@@ -35,7 +35,7 @@ import com.neurologic.oauth.service.provider.manager.OAuth2TokenManager;
  * @since 11 July 2011
  *
  */
-public abstract class OAuth2TokenProviderService extends OAuthTokenProviderService<OAuth2ServiceProvider, OAuth2TokenManager> {
+public abstract class OAuth2TokenProviderService extends OAuthTokenProviderService<OAuth2TokenManager, OAuth2ServiceProvider> {
 
 	protected final Logger logger = Logger.getLogger(this.getClass());
 	private static final String OAUTH_AUTHORIZATION_HEADER_START = "Basic ";

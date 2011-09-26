@@ -13,6 +13,7 @@ import org.json.JSONObject;
  */
 public class OAuthJsonResponseMessage extends AbstractOAuthResponseMessage {
 
+	private static final String CONTENT_TYPE_JSON = "application/json";
 	private JSONObject json = new JSONObject();
 
 	/**
@@ -21,10 +22,18 @@ public class OAuthJsonResponseMessage extends AbstractOAuthResponseMessage {
 	public OAuthJsonResponseMessage() {
 		super();
 		// TODO Auto-generated constructor stub
-		setCacheControl("no-cache");
-		setContentType("application/json");
+//		setCacheControl("no-cache");
+		setContentType(CONTENT_TYPE_JSON);
 	}
 	
+	/**
+	 * @param json
+	 */
+	public OAuthJsonResponseMessage(JSONObject json) {
+		this();
+		this.json = json;
+	}
+
 	public void put(String key, String value) throws JSONException {
 		json.put(key, value);
 	}
