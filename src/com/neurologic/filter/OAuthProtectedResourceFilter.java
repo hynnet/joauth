@@ -21,9 +21,9 @@ import org.apache.log4j.Logger;
  * @since 15 August 2011
  *
  */
-public abstract class OAuthServiceProviderFilter implements Filter {
+public abstract class OAuthProtectedResourceFilter implements Filter {
 	
-	protected final Logger logger = Logger.getLogger(OAuthServiceProviderFilter.class);
+	protected final Logger logger = Logger.getLogger(OAuthProtectedResourceFilter.class);
 	private String realm;
 
 	/* (non-Javadoc)
@@ -35,6 +35,8 @@ public abstract class OAuthServiceProviderFilter implements Filter {
 		if (logger.isInfoEnabled()) {
 			logger.info("Initializing...");
 		}
+		
+		realm = filterConfig.getInitParameter("realm");
 	}
 	
 	/* (non-Javadoc)
@@ -46,7 +48,6 @@ public abstract class OAuthServiceProviderFilter implements Filter {
 		if (logger.isInfoEnabled()) {
 			logger.info("Destroying...");
 		}
-
 	}
 
 	/**
@@ -65,6 +66,5 @@ public abstract class OAuthServiceProviderFilter implements Filter {
 		doFilter((HttpServletRequest)request, (HttpServletResponse)response, filterChain);
 	}
 
-	
 	protected abstract void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException;
 }
