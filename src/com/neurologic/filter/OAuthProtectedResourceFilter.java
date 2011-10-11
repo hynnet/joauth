@@ -67,7 +67,6 @@ public abstract class OAuthProtectedResourceFilter implements Filter {
 		return oauthName;
 	}
 	
-
 	/* (non-Javadoc)
 	 * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)
 	 */
