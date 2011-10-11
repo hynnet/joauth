@@ -39,14 +39,13 @@ import org.apache.log4j.Logger;
 
 import com.neurologic.exception.HttpException;
 import com.neurologic.http.HttpClient;
-import com.neurologic.http.impl.DefaultHttpClient;
 
 /**
  * @author Bienfait Sindi
  * @since 31 March 2010
  *
  */
-public class OAuth1Consumer {
+public class OAuth1Consumer extends OAuthConsumer<OAuth1ServiceProvider> {
 
 	private static final Logger logger = Logger.getLogger(OAuth1Consumer.class);
 	private static final String ERROR_NO_SERVICE_PROVIDER = "No OAuth Service Provider has been provided. Call \"setServiceProvider()\" method to assign an OAuth Service Provider.";
@@ -55,7 +54,6 @@ public class OAuth1Consumer {
 	
 	private String consumerKey;
 	private String consumerSecret;
-	private OAuth1ServiceProvider serviceProvider;
 	
 	/**
 	 * @param consumerKey
@@ -71,20 +69,17 @@ public class OAuth1Consumer {
 	 * @param serviceProvider
 	 */
 	public OAuth1Consumer(String consumerKey, String consumerSecret, OAuth1ServiceProvider serviceProvider) {
+		super(serviceProvider);
 		this.consumerKey = consumerKey;
 		this.consumerSecret = consumerSecret;
-		setServiceProvider(serviceProvider);
-	}
-
-	/**
-	 * @param serviceProvider the serviceProvider to set
-	 */
-	public void setServiceProvider(OAuth1ServiceProvider serviceProvider) {
-		this.serviceProvider = serviceProvider;
 	}
 	
 	public RequestToken requestUnauthorizedToken(String realm, String callbackUrl, Map<String, String> additionalParameters, OAuthSignature signature) throws OAuthException {
-		if (serviceProvider == null) {
+		if (getClient() == null) {
+			throw new OAuthException("HttpClient is required.");
+		}
+		
+		if (getServiceProvider() == null) {
 			throw new OAuthException(ERROR_NO_SERVICE_PROVIDER);
 		}
 		
@@ -97,9 +92,9 @@ public class OAuth1Consumer {
 		}
 		
 		RequestToken requestToken = null;
-		String requestTokenUrl = serviceProvider.getRequestTokenUrl();
+		String requestTokenUrl = getServiceProvider().getRequestTokenUrl();
 		String httpRequestMethod = "POST";
-		HttpClient client = new DefaultHttpClient();
+		HttpClient client = getClient();
 		
 		try {
 			long timestamp = OAuth1Util.getTimestamp();
@@ -169,7 +164,7 @@ public class OAuth1Consumer {
 	}
 	
 	private String createOAuthUserAuthorizationUrl(String requestToken, Map<String, String> additionalParameters) throws OAuthException {
-		if (serviceProvider == null) {
+		if (getServiceProvider() == null) {
 			throw new OAuthException(ERROR_NO_SERVICE_PROVIDER);
 		}
 		
@@ -181,12 +176,16 @@ public class OAuth1Consumer {
 			additionalParameters.put(OAuth1Parameters.OAUTH_TOKEN, requestToken);
 		}
 		
-		String oauthAuthorizeUrl = serviceProvider.getAuthorizationUrl();	
+		String oauthAuthorizeUrl = getServiceProvider().getAuthorizationUrl();	
 		return oauthAuthorizeUrl + ((oauthAuthorizeUrl.indexOf('?') > -1) ? "&" : "?") + OAuth1Util.getQueryString(additionalParameters, new QueryKeyValuePair());
 	}
 	
 	public AccessToken requestAccessToken(String realm, RequestToken requestToken, AuthorizedToken authorizedToken, OAuthSignature signature) throws OAuthException {
-		if (serviceProvider == null) {
+		if (getClient() == null) {
+			throw new OAuthException("HttpClient is required.");
+		}
+		
+		if (getServiceProvider() == null) {
 			throw new OAuthException(ERROR_NO_SERVICE_PROVIDER);
 		}
 		
@@ -212,8 +211,8 @@ public class OAuth1Consumer {
 		}
 		
 		AccessToken accessToken = null;
-		HttpClient client = new DefaultHttpClient();
-		String accessTokenUrl = serviceProvider.getAccessTokenUrl();
+		HttpClient client = getClient();
+		String accessTokenUrl = getServiceProvider().getAccessTokenUrl();
 		String httpRequestMethod = "POST";
 		
 		try {
