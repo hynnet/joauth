@@ -43,14 +43,13 @@ import sun.misc.BASE64Encoder;
 
 import com.neurologic.exception.HttpException;
 import com.neurologic.http.HttpClient;
-import com.neurologic.http.impl.DefaultHttpClient;
 
 /**
  * @author Bienfait Sindi
  * @since 24 July 2010
  *
  */
-public class OAuth2Consumer {
+public class OAuth2Consumer extends OAuthConsumer<OAuth2ServiceProvider> {
 
 	private static final Logger logger = Logger.getLogger(OAuth2Consumer.class);
 	private static final String URL_ENCODING = "UTF-8";
@@ -59,7 +58,6 @@ public class OAuth2Consumer {
 	
 	private String clientID;
 	private String clientSecret;
-	private OAuth2ServiceProvider serviceProvider;
 	
 	/**
 	 * @param clientID
@@ -75,16 +73,9 @@ public class OAuth2Consumer {
 	 * @param serviceProvider
 	 */
 	public OAuth2Consumer(String clientID, String clientSecret, OAuth2ServiceProvider serviceProvider) {
+		super(serviceProvider);
 		this.clientID = clientID;
 		this.clientSecret = clientSecret;
-		setServiceProvider(serviceProvider);
-	}
-
-	/**
-	 * @param serviceProvider the serviceProvider to set
-	 */
-	public void setServiceProvider(OAuth2ServiceProvider serviceProvider) {
-		this.serviceProvider = serviceProvider;
 	}
 	
 	public String generateRequestAuthorizationUrl(ResponseType responseType, String redirectUri) throws OAuthException {
@@ -96,7 +87,7 @@ public class OAuth2Consumer {
 	}
 
 	public String generateRequestAuthorizationUrl(ResponseType responseType, String redirectUri, String state, String scopeDelimiter, String... scope) throws OAuthException {
-		if (serviceProvider == null) {
+		if (getServiceProvider() == null) {
 			throw new OAuthException(ERROR_NO_SERVICE_PROVIDER);
 		}
 		
@@ -111,8 +102,8 @@ public class OAuth2Consumer {
 		StringBuffer sb = new StringBuffer();
 
 		try {
-			sb.append(serviceProvider.getAuthorizationUrl());
-			if (serviceProvider.getAuthorizationUrl().indexOf('?') > -1) {
+			sb.append(getServiceProvider().getAuthorizationUrl());
+			if (getServiceProvider().getAuthorizationUrl().indexOf('?') > -1) {
 				sb.append('&');
 			} else {
 				sb.append('?');
@@ -152,7 +143,11 @@ public class OAuth2Consumer {
 	}
 	
 	public AccessToken requestAcessToken(GrantType grantType, OAuth2Parameters parameters, String scopeDelimiter, String... scope) throws OAuthException {
-		if (serviceProvider == null) {
+		if (getClient() == null) {
+			throw new OAuthException("HttpClient is required.");
+		}
+		
+		if (getServiceProvider() == null) {
 			throw new OAuthException(ERROR_NO_SERVICE_PROVIDER);
 		}
 		
@@ -188,7 +183,7 @@ public class OAuth2Consumer {
 		parameters.setClientId(clientID);
 	
 		InputStream in = null;
-		HttpClient client = new DefaultHttpClient();
+		HttpClient client = getClient();
 		
 		try {
 			client.addRequestHeader(HttpClient.HEADER_AUTHORIZATION, "Basic " + base64Encode(clientID, clientSecret));
@@ -196,7 +191,7 @@ public class OAuth2Consumer {
 				client.addParameter(entry.getKey(), entry.getValue());
 			}
 			
-			in = client.connect("POST", serviceProvider.getAccessTokenUrl());
+			in = client.connect("POST", getServiceProvider().getAccessTokenUrl());
 			String contentType = client.getResponseHeaderValue("Content-Type");
 			if (contentType == null) contentType = "";
 			

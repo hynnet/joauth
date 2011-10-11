@@ -59,7 +59,15 @@ public class ApacheHttpClient extends AbstractHttpClient {
 	 */
 	public ApacheHttpClient() {
 		// TODO Auto-generated constructor stub
-		httpClient = new DefaultHttpClient();
+		this(new DefaultHttpClient());
+	}
+
+	/**
+	 * @param httpClient
+	 */
+	public ApacheHttpClient(HttpClient httpClient) {
+		super();
+		this.httpClient = httpClient;
 	}
 
 	/* (non-Javadoc)
