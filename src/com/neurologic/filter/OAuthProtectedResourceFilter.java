@@ -16,8 +16,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
-import com.neurologic.exception.OAuthAuthorizationException;
-
 /**
  * @author Buhake Sindi
  * @since 15 August 2011
