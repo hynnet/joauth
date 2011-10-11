@@ -36,9 +36,14 @@ public class OAuth1ProtectedResourceFilter extends OAuthProtectedResourceFilter 
 	@Override
 	protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
 		// TODO Auto-generated method stub
+		if (logger.isInfoEnabled()) {
+			logger.info("Getting oauth token manager from oauth '" + getOauthName() + "'.");
+		}
+		
 		OAuth1TokenManager tokenManager = OAuthTokenManagerRepository.getInstance().get(getOauthName());
 		if (tokenManager == null) {
-			throw new ServletException("No token manager found. Strange!");
+			logger.error("No token manager found. Strange!");
+			throw new ServletException("No oauth authorization done.");
 		}
 		
 		try {
