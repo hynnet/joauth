@@ -16,7 +16,10 @@
  */
 package net.oauth.util;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import net.oauth.enums.TokenType;
 import net.oauth.parameters.OAuth2Parameters;
@@ -36,6 +39,24 @@ public class OAuth2Util {
 	private OAuth2Util() {}
 	
 	/**
+	 * According to OAuth 2, section 3.1.2 (Redirect Endpoint), a redirection endpoint <b>MUST</b> be an 
+	 * absolute URI and <b>MUST not</b> include a fragment component.
+	 * @param redirectUri
+	 * @return
+	 */
+	public static boolean isRedirectEndpointUriValid(String redirectUri) {
+		try {
+			URI uri = new URI(redirectUri);
+			return (uri.isAbsolute() && uri.getFragment() == null);
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			// FIXME Never print stacktrace!!!
+			//e.printStackTrace();
+			return false;
+		}
+	}
+	
+	/**
 	 * Creates an authorization token based on a response map received by the OAuth Server.
 	 * 
 	 * @param responseMap - OAuth responses
@@ -53,17 +74,16 @@ public class OAuth2Util {
 		AuthorizationToken authorizationToken = new AuthorizationToken();
 		
 		synchronized (responseMap) {
-			for (String key : responseMap.keySet()) {
-				String value = responseMap.get(key);
+			for (Entry<String, String> entry : responseMap.entrySet()) {
 				
-				if (OAuth2Parameters.CODE.equals(key)) {
-					authorizationToken.setCode(value);
-				} else if (EXPIRES_IN.equals(key)) {
-					authorizationToken.setExpiresIn(Integer.parseInt(value));
-				} else if (OAuth2Parameters.SCOPE.equals(key)) {
-					authorizationToken.setScope(value);
-				} else if (OAuth2Parameters.STATE.equals(key)) {
-					authorizationToken.setState(value);
+				if (OAuth2Parameters.CODE.equals(entry.getKey())) {
+					authorizationToken.setCode(entry.getValue());
+				} else if (EXPIRES_IN.equals(entry.getKey())) {
+					authorizationToken.setExpiresIn(Integer.parseInt(entry.getValue()));
+				} else if (OAuth2Parameters.SCOPE.equals(entry.getKey())) {
+					authorizationToken.setScope(entry.getValue());
+				} else if (OAuth2Parameters.STATE.equals(entry.getKey())) {
+					authorizationToken.setState(entry.getValue());
 				}
 			}
 		}
@@ -88,23 +108,22 @@ public class OAuth2Util {
 		
 		AccessToken accessToken = new AccessToken();
 		synchronized (responseMap) {
-			for (String key : responseMap.keySet()) {
-				String value = responseMap.get(key);
+			for (Entry<String, String> entry : responseMap.entrySet()) {
 				
-				if (OAuth2Parameters.ACCESS_TOKEN.equals(key)) {
-					accessToken.setAccessToken(value);
-				} else if (TOKEN_TYPE.equals(key)) {
-					accessToken.setTokenType(TokenType.of(value));
-				} else if (EXPIRES_IN.equals(key)) {
-					accessToken.setExpiresIn(Integer.parseInt(value));
-				} else if (OAuth2Parameters.REFRESH_TOKEN.equals(key)) {
-					accessToken.setRefreshToken(value);
-				} else if (OAuth2Parameters.SCOPE.equals(key)) {
-					accessToken.setScope(value);
-				} else if (OAuth2Parameters.STATE.equals(key)) {
-					accessToken.setState(value);
+				if (OAuth2Parameters.ACCESS_TOKEN.equals(entry.getKey())) {
+					accessToken.setAccessToken(entry.getValue());
+				} else if (TOKEN_TYPE.equals(entry.getKey())) {
+					accessToken.setTokenType(TokenType.of(entry.getValue()));
+				} else if (EXPIRES_IN.equals(entry.getKey())) {
+					accessToken.setExpiresIn(Integer.parseInt(entry.getValue()));
+				} else if (OAuth2Parameters.REFRESH_TOKEN.equals(entry.getKey())) {
+					accessToken.setRefreshToken(entry.getValue());
+				} else if (OAuth2Parameters.SCOPE.equals(entry.getKey())) {
+					accessToken.setScope(entry.getValue());
+				} else if (OAuth2Parameters.STATE.equals(entry.getKey())) {
+					accessToken.setState(entry.getValue());
 				} else {
-					accessToken.addAdditionalParameter(key, value);
+					accessToken.addAdditionalParameter(entry.getKey(), entry.getValue());
 				}
 			}
 		}

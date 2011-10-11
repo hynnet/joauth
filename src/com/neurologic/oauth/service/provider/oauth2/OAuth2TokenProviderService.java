@@ -16,19 +16,31 @@
  */
 package com.neurologic.oauth.service.provider.oauth2;
 
-import java.io.IOException;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import net.oauth.enums.OAuth2Error;
+import net.oauth.exception.OAuthException;
+import net.oauth.parameters.OAuth2ErrorParameters;
+import net.oauth.parameters.OAuth2Parameters;
+import net.oauth.parameters.OAuthParameters;
 import net.oauth.provider.OAuth2ServiceProvider;
-
-import org.apache.log4j.Logger;
-
-import sun.misc.BASE64Decoder;
 
 import com.neurologic.exception.OAuthAuthorizationException;
 import com.neurologic.oauth.service.provider.OAuthTokenProviderService;
 import com.neurologic.oauth.service.provider.manager.OAuth2TokenManager;
+import com.neurologic.oauth.service.request.authentication.HttpAuthorizationChallenger;
+import com.neurologic.oauth.service.request.authentication.HttpBasicAuthorizationChallenger;
+import com.neurologic.oauth.service.response.Result;
+import com.neurologic.oauth.service.response.authenticate.WWWAuthenticateResponse;
+import com.neurologic.oauth.service.response.formatter.JSonParameterFormatter;
+import com.neurologic.oauth.service.response.impl.OAuthMessageResult;
 
 /**
  * @author Buhake Sindi
@@ -36,37 +48,128 @@ import com.neurologic.oauth.service.provider.manager.OAuth2TokenManager;
  *
  */
 public abstract class OAuth2TokenProviderService extends OAuthTokenProviderService<OAuth2TokenManager, OAuth2ServiceProvider> {
-
-	protected final Logger logger = Logger.getLogger(this.getClass());
-	private static final String OAUTH_AUTHORIZATION_HEADER_START = "Basic ";
-
-	protected String getOAuthAuthorizationParameters(HttpServletRequest request) throws OAuthAuthorizationException {
-		if (request == null) {
-			return null;
+	
+	protected OAuth2ErrorParameters toError(OAuth2Error error, String description, String errorUri, String state) {
+		OAuth2ErrorParameters errorParameters = new OAuth2ErrorParameters(error);
+		
+		if (description != null && !description.isEmpty()) {
+			errorParameters.setErrorDescription(description);
 		}
 		
-		String header = request.getHeader(HTTP_HEADER_AUTHORIZATION);
-		
-		if (header == null || header.isEmpty()) {
-//			throw new OAuthAuthorizationException("Cannot find HTTP Header '" + HTTP_HEADER_AUTHORIZATION + "'.");
-			return null;
+		if (errorUri != null && !errorUri.isEmpty()) {
+			errorParameters.setErrorUri(errorUri);
 		}
 		
-		if (!header.startsWith(OAUTH_AUTHORIZATION_HEADER_START)) {
-			throw new OAuthAuthorizationException("HTTP Authorization header is invalid.");
+		if (state != null && !state.isEmpty()) {
+			errorParameters.setState(state);
 		}
 		
-		if (logger.isInfoEnabled()) {
-			logger.info(HTTP_HEADER_AUTHORIZATION + ": " + header);
+		return errorParameters;
+	}
+	
+	/**
+	 * This parameter map returns a unique key/value pair (i.e. a parameter key must exists only once), else throw an exception.
+	 * The returned map is an unmodifiable map.
+	 * 
+	 * @param request
+	 * @return
+	 * @throws OAuthException
+	 */
+	private Map<String, String> requestParameterMap(HttpServletRequest request) throws OAuthException {
+		Map<String, String> parameterMap = new LinkedHashMap<String, String>();
+		
+		for (Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+			if (entry.getValue() != null && entry.getValue().length != 1) {
+				throw new OAuthException(entry.getValue().length + " parameters found with key '" + entry.getKey() + "'.");
+			}
+			
+			parameterMap.put(entry.getKey(), entry.getValue()[0]);
 		}
+		
+		return Collections.unmodifiableMap(parameterMap);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.neurologic.oauth.service.provider.AbstractOAuthProviderService#execute(javax.servlet.http.HttpServletRequest)
+	 */
+	@Override
+	protected Result execute(HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		OAuthMessageResult result = new OAuthMessageResult(new JSonParameterFormatter());
+		OAuthParameters parameters = null;
+		int statusCode;
 		
 		try {
-			BASE64Decoder b64decoder = new BASE64Decoder();
-			String originalString = new String(b64decoder.decodeBuffer(header.substring(OAUTH_AUTHORIZATION_HEADER_START.length())));
-			return originalString;
-		} catch (IOException e) {
+			validateRequest(request);
+			
+			//Let's get the Authorization parameters
+			HttpAuthorizationChallenger<String[]> challenge = new HttpBasicAuthorizationChallenger();
+			String[] credentials = challenge.processChallenge(request.getHeader(HTTP_HEADER_AUTHORIZATION));
+			
+			Credential credential = new Credential(credentials[0], credentials[1]);
+			if (!getOauthTokenManager().validateCredentials(credential.getClientId(), credential.getClientSecret())) {
+				throw new OAuthAuthorizationException("Invalid authorization credentials");
+			}
+			
+			parameters = executeInternal(requestParameterMap(request), credential);
+			statusCode = HttpServletResponse.SC_OK;
+		} catch (OAuthException e) {
 			// TODO Auto-generated catch block
-			throw new OAuthAuthorizationException(e.getLocalizedMessage(), e);
+			logger.error(e.getClass().getName() + ": " + e.getLocalizedMessage(), e);
+			OAuth2Error error = OAuth2Error.INVALID_REQUEST;
+			statusCode = HttpServletResponse.SC_BAD_REQUEST;
+			if (e instanceof OAuthAuthorizationException) {
+				statusCode = HttpServletResponse.SC_UNAUTHORIZED;
+				error = OAuth2Error.INVALID_CLIENT;
+				
+				if (request.getHeader(HTTP_HEADER_AUTHORIZATION) != null) {
+					result.addHeader(WWWAuthenticateResponse.HTTP_AUTHENTICATE_HEADER, "Basic");
+				}
+			}
+			
+			parameters = toError(error, e.getMessage(), null, request.getParameter(OAuth2Parameters.STATE));
+		}
+		
+		result.addHeader("Cache-Control", "no-store");
+		result.addHeader("Pragma", "no-cache");
+		result.setOAuthParameters(parameters);
+		result.setStatusCode(statusCode);
+		return result;
+	}
+	
+	protected abstract OAuthParameters executeInternal(Map<String, String> requestParameters, final Credential credential);
+	
+	protected static final class Credential implements Serializable {
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -6596523602416504101L;
+		private String clientId;
+		private String clientSecret;
+		
+		/**
+		 * @param clientId
+		 * @param clientSecret
+		 */
+		private Credential(String clientId, String clientSecret) {
+			super();
+			this.clientId = clientId;
+			this.clientSecret = clientSecret;
+		}
+
+		/**
+		 * @return the clientId
+		 */
+		public final String getClientId() {
+			return clientId;
+		}
+
+		/**
+		 * @return the clientSecret
+		 */
+		public final String getClientSecret() {
+			return clientSecret;
 		}
 	}
 }

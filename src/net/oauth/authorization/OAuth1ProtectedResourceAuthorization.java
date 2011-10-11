@@ -9,7 +9,7 @@ import java.util.Map;
 
 import net.oauth.authorization.builder.OAuthAuthorizationBuilder;
 import net.oauth.parameters.HeaderKeyValuePair;
-import net.oauth.parameters.OAuthParameters;
+import net.oauth.parameters.OAuth1Parameters;
 import net.oauth.provider.OAuth1ServiceProvider;
 import net.oauth.signature.ConsumerSecretBasedOAuthSignature;
 import net.oauth.signature.OAuthSignature;
@@ -49,7 +49,7 @@ public class OAuth1ProtectedResourceAuthorization implements OAuthProtectedResou
 		
 		try {
 			long now = OAuth1Util.getTimestamp();
-			OAuthParameters parameters = new OAuthParameters();
+			OAuth1Parameters parameters = new OAuth1Parameters();
 			parameters.setOAuthConsumerKey(builder.consumerKey);
 			parameters.setOAuthToken(builder.accessToken.getToken());
 			parameters.setOAuthSignatureMethod(builder.signature.getOAuthSignatureMethod());

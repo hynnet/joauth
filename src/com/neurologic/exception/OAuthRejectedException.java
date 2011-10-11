@@ -3,14 +3,13 @@
  */
 package com.neurologic.exception;
 
-import net.oauth.exception.OAuthException;
 
 /**
  * @author Buhake Sindi
  * @since 04 September 2011
  *
  */
-public class OAuthRejectedException extends OAuthException {
+public class OAuthRejectedException extends OAuthAuthorizationException {
 
 	/**
 	 * 

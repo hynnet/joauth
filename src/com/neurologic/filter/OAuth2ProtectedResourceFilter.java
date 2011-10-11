@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
 public class OAuth2ProtectedResourceFilter extends OAuthProtectedResourceFilter {
 	
 	protected final Logger logger = Logger.getLogger(OAuth2ProtectedResourceFilter.class);
-	private String tokenType;
+	private String authScheme;
 
 	/* (non-Javadoc)
 	 * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
@@ -30,7 +30,7 @@ public class OAuth2ProtectedResourceFilter extends OAuthProtectedResourceFilter 
 	public void init(FilterConfig filterConfig) throws ServletException {
 		// TODO Auto-generated method stub
 		super.init(filterConfig);
-		tokenType = filterConfig.getInitParameter("tokenType");
+		authScheme = filterConfig.getInitParameter("auth-scheme");
 	}
 	
 	/* (non-Javadoc)

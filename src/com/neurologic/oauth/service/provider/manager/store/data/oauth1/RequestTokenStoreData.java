@@ -18,6 +18,7 @@ public class RequestTokenStoreData extends AbstractTokenStoreData {
 	private String callbackUrl;
 	private boolean authorized = false;
 	private String verifier = null;
+	private String userId;
 
 	/**
 	 * @return the callbackUrl
@@ -59,5 +60,19 @@ public class RequestTokenStoreData extends AbstractTokenStoreData {
 	 */
 	public void setVerifier(String verifier) {
 		this.verifier = verifier;
+	}
+
+	/**
+	 * @return the userId
+	 */
+	public String getUserId() {
+		return userId;
+	}
+
+	/**
+	 * @param userId the userId to set
+	 */
+	public void setUserId(String userId) {
+		this.userId = userId;
 	}
 }

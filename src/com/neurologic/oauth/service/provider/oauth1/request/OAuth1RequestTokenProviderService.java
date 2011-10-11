@@ -4,18 +4,14 @@
 package com.neurologic.oauth.service.provider.oauth1.request;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import net.oauth.exception.OAuthException;
-import net.oauth.parameters.OAuthParameters;
+import net.oauth.parameters.OAuth1Parameters;
 import net.oauth.token.oauth1.RequestToken;
 
 import com.neurologic.exception.OAuthAuthorizationException;
 import com.neurologic.exception.OAuthRejectedException;
-import com.neurologic.oauth.service.provider.manager.OAuth1TokenManager;
 import com.neurologic.oauth.service.provider.oauth1.OAuth1TokenProviderService;
-import com.neurologic.oauth.service.provider.response.OAuthResponseMessage;
-import com.neurologic.oauth.service.provider.response.UrlEncodedFormResponseMessage;
 
 /**
  * @author Buhake Sindi
@@ -25,35 +21,31 @@ import com.neurologic.oauth.service.provider.response.UrlEncodedFormResponseMess
 public class OAuth1RequestTokenProviderService extends OAuth1TokenProviderService {
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.provider.AbstractOAuthProviderService#execute(javax.servlet.http.HttpServletRequest)
+	 * @see com.neurologic.oauth.service.provider.oauth1.OAuth1TokenProviderService#executeInternal(javax.servlet.http.HttpServletRequest, net.oauth.parameters.OAuth1Parameters)
 	 */
 	@Override
-	protected OAuthResponseMessage execute(HttpServletRequest request) throws OAuthException {
+	protected OAuth1Parameters executeInternal(HttpServletRequest request, final OAuth1Parameters authorizationParameters) throws OAuthException {
 		// TODO Auto-generated method stub
-		String requestMethod = request.getMethod();
-		if (!"POST".equals(requestMethod)) {
-			throw new OAuthException("Cannot execute request with " + request.getMethod() + " HTTP method.");
+		if (!getOauthTokenManager().validateOAuthHeaderParameters(request.getMethod(), serviceProvider.getRequestTokenUrl(), authorizationParameters)) {
+			throw new OAuthAuthorizationException("Cannot verify OAuth Authorization: " + request.getHeader(HTTP_HEADER_AUTHORIZATION));	
 		}
 		
-		String requestTokenUrl = serviceProvider.getRequestTokenUrl();
-		OAuth1TokenManager tokenManager = (OAuth1TokenManager) getOauthTokenManager();
-		OAuthParameters parameters = getOAuthAuthorizationParameters(request);
-		if (!tokenManager.validateOAuthHeaderParameters(requestMethod, requestTokenUrl, parameters)) {
-			throw new OAuthAuthorizationException("Cannot verify oauth authorization: " + request.getHeader(HTTP_HEADER_AUTHORIZATION));	
+		//Just in case....
+		String token = authorizationParameters.getOAuthToken();
+		if (token != null && !token.isEmpty()) {
+			logger.error("Received " + OAuth1Parameters.OAUTH_TOKEN + " \"" + token +"\" on request token generation call.");
+			throw new OAuthRejectedException("Invalid OAuth Authorization header: " + OAuth1Parameters.OAUTH_TOKEN + " value is set.");
 		}
 		
-		RequestToken requestToken = tokenManager.createRequestToken(requestMethod, requestTokenUrl, parameters);
+		RequestToken requestToken = getOauthTokenManager().createRequestToken(authorizationParameters.getOAuthConsumerKey(), authorizationParameters.getOAuthCallback());
 		if (requestToken == null) {
-			throw new OAuthAuthorizationException(new OAuthRejectedException("Cannot create request token."));
+			throw new OAuthAuthorizationException("Cannot create request token.");
 		}
 		
-		OAuthResponseMessage oauthMessage = new UrlEncodedFormResponseMessage();
-		
-		((UrlEncodedFormResponseMessage)oauthMessage).put(OAuthParameters.OAUTH_TOKEN, requestToken.getToken());
-		((UrlEncodedFormResponseMessage)oauthMessage).put(OAuthParameters.OAUTH_TOKEN_SECRET, requestToken.getTokenSecret());
-		((UrlEncodedFormResponseMessage)oauthMessage).put(OAuthParameters.OAUTH_CALLBACK_CONFIRMED, String.valueOf(requestToken.isOauthCallbackConfirmed()));
-		
-		oauthMessage.setStatusCode(HttpServletResponse.SC_OK);
-		return oauthMessage;
+		OAuth1Parameters parameters = new OAuth1Parameters();
+		parameters.setOAuthToken(requestToken.getToken());
+		parameters.setOAuthTokenSecret(requestToken.getTokenSecret());
+		parameters.setOAuthCallbackConfirmed(true);
+		return parameters;
 	}
 }

@@ -18,6 +18,8 @@ public class AuthorizationTokenStoreData extends StoreData {
 	private static final long serialVersionUID = -3634600984384522070L;
 	private String code;
 	private String redirectUri;
+	private String scope;
+	private String state;
 	
 	/**
 	 * @return the code
@@ -45,5 +47,33 @@ public class AuthorizationTokenStoreData extends StoreData {
 	 */
 	public void setRedirectUri(String redirectUri) {
 		this.redirectUri = redirectUri;
+	}
+
+	/**
+	 * @return the scope
+	 */
+	public String getScope() {
+		return scope;
+	}
+
+	/**
+	 * @param scope the scope to set
+	 */
+	public void setScope(String scope) {
+		this.scope = scope;
+	}
+
+	/**
+	 * @return the state
+	 */
+	public String getState() {
+		return state;
+	}
+
+	/**
+	 * @param state the state to set
+	 */
+	public void setState(String state) {
+		this.state = state;
 	}
 }

@@ -24,6 +24,7 @@ import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import net.oauth.enums.GrantType;
 import net.oauth.enums.ResponseType;
@@ -42,7 +43,7 @@ import sun.misc.BASE64Encoder;
 
 import com.neurologic.exception.HttpException;
 import com.neurologic.http.HttpClient;
-import com.neurologic.http.impl.ApacheHttpClient;
+import com.neurologic.http.impl.DefaultHttpClient;
 
 /**
  * @author Bienfait Sindi
@@ -187,12 +188,12 @@ public class OAuth2Consumer {
 		parameters.setClientId(clientID);
 	
 		InputStream in = null;
-		HttpClient client = new ApacheHttpClient();
+		HttpClient client = new DefaultHttpClient();
 		
 		try {
 			client.addRequestHeader(HttpClient.HEADER_AUTHORIZATION, "Basic " + base64Encode(clientID, clientSecret));
-			for (String parameter: parameters.getParameterNames()) {
-				client.addParameter(parameter, parameters.getParameterValue(parameter));
+			for (Entry<String, String> entry : parameters.getOAuthParameters().entrySet()) {
+				client.addParameter(entry.getKey(), entry.getValue());
 			}
 			
 			in = client.connect("POST", serviceProvider.getAccessTokenUrl());

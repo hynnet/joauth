@@ -11,7 +11,6 @@ package net.oauth.hash;
 public class Sha256Hasher extends AbstractHasher {
 
 	/**
-	 * @param algorithm
 	 */
 	public Sha256Hasher() {
 		super("SHA-256");

@@ -24,7 +24,7 @@ import java.util.TreeMap;
 import net.oauth.encoding.OAuthEncoding;
 import net.oauth.encoding.impl.UTF8Encoding;
 import net.oauth.parameters.KeyValuePair;
-import net.oauth.parameters.OAuthParameters;
+import net.oauth.parameters.OAuth1Parameters;
 
 /**
  * @author Bienfait Sindi
@@ -43,8 +43,8 @@ public class OAuth1Util {
 	
 	public static String getSignatureBaseString(String httpRequestMethod, String requestUrl, Map<String, String> oauthParameters) {
 		//Must remove first, "oauth_signature"
-		if (oauthParameters != null && oauthParameters.containsKey(OAuthParameters.OAUTH_SIGNATURE)) {
-			oauthParameters.remove(OAuthParameters.OAUTH_SIGNATURE);
+		if (oauthParameters != null && oauthParameters.containsKey(OAuth1Parameters.OAUTH_SIGNATURE)) {
+			oauthParameters.remove(OAuth1Parameters.OAUTH_SIGNATURE);
 		}
 		
 		return encode(httpRequestMethod.toUpperCase()) + "&" + encode(normalizeUrl(requestUrl)) + "&" + encode(normalizeParameters(requestUrl, oauthParameters));
@@ -126,14 +126,14 @@ public class OAuth1Util {
 			return "";
 		}
 		
-		if (parameters.containsKey(OAuthParameters.OAUTH_REALM)) {
-			kvp.add(OAuthParameters.OAUTH_REALM, parameters.get(OAuthParameters.OAUTH_REALM));
+		if (parameters.containsKey(OAuth1Parameters.OAUTH_REALM)) {
+			kvp.add(OAuth1Parameters.OAUTH_REALM, parameters.get(OAuth1Parameters.OAUTH_REALM));
 		}
 		
 		synchronized (parameters) {
 			for (Entry<String, String> entry : parameters.entrySet()) {
 				
-				if (OAuthParameters.OAUTH_REALM.equals(entry.getKey())) continue;
+				if (OAuth1Parameters.OAUTH_REALM.equals(entry.getKey())) continue;
 				kvp.add(entry.getKey(), entry.getValue());
 			}
 		}

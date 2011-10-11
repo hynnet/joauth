@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.neurologic.oauth.response.parameters;
+package com.neurologic.oauth.service.response.authenticate.parameters;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -12,34 +12,16 @@ import java.util.Map.Entry;
  * @since 26 September 2011
  *
  */
-public abstract class HttpAuthenticateParameters {
+public abstract class WWWAuthenticateParameters {
 
-	public static final String PARAM_REALM = "realm";
-	
-	private String challenge;
 	private Map<String, String> parameterMap;
 
 	/**
 	 * @param challenge
 	 */
-	protected HttpAuthenticateParameters(String challenge) {
+	protected WWWAuthenticateParameters() {
 		super();
-		this.challenge = challenge;
 		parameterMap = new LinkedHashMap<String, String>();
-	}
-
-	/**
-	 * @return the challenge
-	 */
-	public String getChallenge() {
-		return challenge;
-	}
-	
-	/**
-	 * @param realm the realm to set
-	 */
-	public void setRealm(String realm) {
-		put(PARAM_REALM, realm);
 	}
 
 	protected String get(String key) {

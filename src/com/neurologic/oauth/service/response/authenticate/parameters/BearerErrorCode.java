@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.neurologic.oauth.response.parameters;
+package com.neurologic.oauth.service.response.authenticate.parameters;
 
 /**
  * For OAuth 2 Bearer token type <b>only</b>.
@@ -10,21 +10,23 @@ package com.neurologic.oauth.response.parameters;
  * @since 26 September 2011
  *
  */
-public enum ErrorCode {
+public enum BearerErrorCode {
 	INVALID_REQUEST(400, "invalid_request")
 	,INVALID_TOKEN(401, "invalid_token")
 	,INSUFFICIENT_SCOPE(403, "insufficient_scope")
 	;
 	private int statusCode;
 	private String errorCode;
+	
 	/**
 	 * @param statusCode
 	 * @param errorCode
 	 */
-	private ErrorCode(int statusCode, String errorCode) {
+	private BearerErrorCode(int statusCode, String errorCode) {
 		this.statusCode = statusCode;
 		this.errorCode = errorCode;
 	}
+	
 	/**
 	 * @return the statusCode
 	 */
@@ -32,7 +34,7 @@ public enum ErrorCode {
 		return statusCode;
 	}
 	
-	public static ErrorCode of(String errorCode) {
+	public static BearerErrorCode of(String errorCode) {
 		if (INVALID_REQUEST.errorCode.equals(errorCode)) {
 			return INVALID_REQUEST;
 		}

@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.oauth.exception.OAuthException;
-import net.oauth.parameters.OAuthParameters;
+import net.oauth.parameters.OAuth1Parameters;
 import net.oauth.provider.OAuth1ServiceProvider;
 import net.oauth.signature.OAuthSignature;
 import net.oauth.signature.OAuthSignatureMethod;
@@ -39,7 +39,6 @@ import com.neurologic.oauth.util.ExceptionUtil;
  */
 public class OAuth1TokenManager extends AbstractOAuthTokenManager {
 	
-	private static final String NO_OAUTH_PARAMETERS = "No oauth parameters provided.";
 	private final Object lock = new Object();
 	private TokenStringGenerator requestTokenGenerator;
 	private TokenStringGenerator authVerifierGenerator;
@@ -178,50 +177,42 @@ public class OAuth1TokenManager extends AbstractOAuthTokenManager {
 	}
 
 	/**
-	 * Create a {@link RequestToken} based on the oauth parameters received.
+	 * Creates a {@link RequestToken} based on the consumer key and oauth callback.
+	 * <br />We assumed that the oauth parameters verification has been done.
 	 * 
-	 * @param requestMethod an HTTP request method (must be <code>POST</code>).
-	 * @param requestTokenUrl The service provider request token url endpoint.
-	 * @param oauthParameters the OAuth Authorization parameter received from HTTP Authorization header.
-	 * @return a request token, if all checks passed, null otherwise.
+	 * @param consumerKey
+	 * @param oauthCallback
+	 * @return
 	 * @throws OAuthException
 	 */
-	public RequestToken createRequestToken(String requestMethod, String requestTokenUrl, OAuthParameters oauthParameters) throws OAuthException {
+	public RequestToken createRequestToken(String consumerKey, String oauthCallback) throws OAuthException {
 		RequestToken requestToken = null;
 		
 		try {
 			synchronized (lock) {
-				ExceptionUtil.throwIfNull(oauthParameters, NO_OAUTH_PARAMETERS);
-				ExceptionUtil.throwIfNull(oauthParameters.getValue(OAuthParameters.OAUTH_CALLBACK), "oauth_callback is required.");
+				ExceptionUtil.throwIfNull(consumerKey, OAuth1Parameters.OAUTH_CONSUMER_KEY + " is required");
+				ExceptionUtil.throwIfNull(oauthCallback, OAuth1Parameters.OAUTH_CALLBACK + " is required.");
 				
-				String token = oauthParameters.getValue(OAuthParameters.OAUTH_TOKEN);
-				if (token != null && !token.isEmpty()) {
-					logger.error("Received oauth_toke\"" + token +"\" on request token generation call.");
-					throw new OAuthRejectedException("Invalid oauth header. 'oauth_token' value is set.");
+				RequestTokenStoreData requestTokenData = new RequestTokenStoreData();
+				long timestamp = System.currentTimeMillis();
+				requestTokenData.setConsumerKey(consumerKey);
+				requestTokenData.setToken(requestTokenGenerator.generateToken());
+				String tokenSecret = null;
+				if (tokenSecretLength > 1) {
+					tokenSecret = tokenSecretGenerator.generateToken(new byte[tokenSecretLength]);
+				} else {
+					tokenSecret = tokenSecretGenerator.generateToken();
 				}
+				requestTokenData.setTokenSecret(tokenSecret);
+				requestTokenData.setCallbackUrl(oauthCallback);
+				requestTokenData.setMaximumValidity(requestTokenValidity);
+				requestTokenData.setCreationTime(timestamp);
 				
-//				if (validateOAuthHeaderParameters(requestMethod, requestTokenUrl, oauthParameters)) {
-					RequestTokenStoreData requestTokenData = new RequestTokenStoreData();
-					long timestamp = System.currentTimeMillis();
-					requestTokenData.setConsumerKey(oauthParameters.getValue(OAuthParameters.OAUTH_CONSUMER_KEY));
-					requestTokenData.setToken(requestTokenGenerator.generateToken());
-					String tokenSecret = null;
-					if (tokenSecretLength > 1) {
-						tokenSecret = tokenSecretGenerator.generateToken(new byte[tokenSecretLength]);
-					} else {
-						tokenSecret = tokenSecretGenerator.generateToken();
-					}
-					requestTokenData.setTokenSecret(tokenSecret);
-					requestTokenData.setCallbackUrl(oauthParameters.getValue(OAuthParameters.OAUTH_CALLBACK));
-					requestTokenData.setMaximumValidity(requestTokenValidity);
-					requestTokenData.setCreationTime(timestamp);
-					
-					//Save
-					requestTokenStore.save(requestTokenData);
-					
-					//No exception thrown, let's create a token.
-					requestToken = new RequestToken(requestTokenData.getToken(), requestTokenData.getTokenSecret(), true);
-//				}
+				//Save
+				requestTokenStore.save(requestTokenData);
+				
+				//No exception thrown, let's create a token.
+				requestToken = new RequestToken(requestTokenData.getToken(), requestTokenData.getTokenSecret(), true);
 			}
 		} catch (NullPointerException e) {
 			// TODO Auto-generated catch block
@@ -236,34 +227,39 @@ public class OAuth1TokenManager extends AbstractOAuthTokenManager {
 	
 	/**
 	 * Authorizes a request token (if it exists and is unauthorized).
+	 * 
 	 * @param requestToken
+	 * @param userId
 	 * @return
 	 * @throws OAuthException
 	 */
-	public AuthorizedToken authorizeRequestToken(String requestToken) throws OAuthException {
+	public AuthorizedToken authorizeRequestToken(String requestToken, String userId) throws OAuthException {
 		AuthorizedToken authorizedToken = null;
 		
 		try {
-			RequestTokenStoreData requestTokenData = requestTokenStore.find(requestToken);
-			ExceptionUtil.throwIfNull(requestTokenData, "No request token found.");
-			
-			if (requestTokenData.isAuthorized()) {
-				logger.error("Request token '" +  requestTokenData.getToken() + "' is already authorized.");
-				throw new UsedTokenException();
+			synchronized (lock) {
+				RequestTokenStoreData requestTokenData = requestTokenStore.find(requestToken);
+				ExceptionUtil.throwIfNull(requestTokenData, "No request token found.");
+				
+				if (requestTokenData.isAuthorized()) {
+					logger.error("Request token '" +  requestTokenData.getToken() + "' is already authorized.");
+					throw new UsedTokenException();
+				}
+				
+				String verifier = authVerifierGenerator.generateToken();
+				long timestamp = System.currentTimeMillis();
+				requestTokenData.setAuthorized(true);
+				requestTokenData.setVerifier(verifier);
+				requestTokenData.setUserId(userId);
+				//update timestamp
+				requestTokenData.setCreationTime(timestamp);
+				
+				requestTokenStore.delete(requestToken);
+				requestTokenStore.save(requestTokenData);
+				
+				//All successful, let's create an authorized token
+				authorizedToken = new AuthorizedToken(requestToken, verifier);
 			}
-			
-			String verifier = authVerifierGenerator.generateToken();
-			long timestamp = System.currentTimeMillis();
-			requestTokenData.setAuthorized(true);
-			requestTokenData.setVerifier(verifier);
-			//update timestamp
-			requestTokenData.setCreationTime(timestamp);
-			
-			requestTokenStore.delete(requestToken);
-			requestTokenStore.save(requestTokenData);
-			
-			//All successful, let's create an authorized token
-			authorizedToken = new AuthorizedToken(requestToken, verifier);
 		} catch (StoreException e) {
 			// TODO Auto-generated catch block
 			throw new OAuthException("Store Exception: " + e.getLocalizedMessage(), e);
@@ -274,70 +270,63 @@ public class OAuth1TokenManager extends AbstractOAuthTokenManager {
 	
 	/**
 	 * Create an access token.
-	 * @param requestMethod
-	 * @param accessTokenUrl
-	 * @param oauthParameters
+	 * @param authorizedToken
+	 * @param verifier
+	 * @param consumerKey
 	 * @return
 	 * @throws OAuthException
 	 */
-	public AccessToken createAccessToken(String requestMethod, String accessTokenUrl, OAuthParameters oauthParameters) throws OAuthException {
+	public AccessToken createAccessToken(String authorizedToken, String verifier, String consumerKey) throws OAuthException {
 		AccessToken accessToken = null;
-		String authorizedToken = oauthParameters.getValue(OAuthParameters.OAUTH_TOKEN);
-		String verifier = oauthParameters.getValue(OAuthParameters.OAUTH_VERIFIER);
+		
 		try {
 			synchronized (lock) {
+				ExceptionUtil.throwIfNull(consumerKey, OAuth1Parameters.OAUTH_CONSUMER_KEY + " is required.");
+				ExceptionUtil.throwIfNull(authorizedToken, OAuth1Parameters.OAUTH_TOKEN + " is required.");
+				ExceptionUtil.throwIfNull(verifier, OAuth1Parameters.OAUTH_VERIFIER + " is required.");
 				
-				ExceptionUtil.throwIfNull(oauthParameters, NO_OAUTH_PARAMETERS);
-				ExceptionUtil.throwIfNull(authorizedToken, OAuthParameters.OAUTH_TOKEN + " is required.");
-				ExceptionUtil.throwIfNull(verifier, OAuthParameters.OAUTH_VERIFIER + " is required.");
+				RequestTokenStoreData requestTokenStoreData = requestTokenStore.find(authorizedToken);
+				if (requestTokenStoreData == null) {
+					logger.error("Couldn't find authorized token '" + authorizedToken + "'.");
+					throw new OAuthRejectedException("Cannot validate token.");
+				}
 				
-	//			if (validateOAuthHeaderParameters(requestMethod, accessTokenUrl, oauthParameters)) {
-					
-					RequestTokenStoreData requestTokenStoreData = requestTokenStore.find(authorizedToken);
-					if (requestTokenStoreData == null) {
-						logger.error("Couldn't find authorized token '" + authorizedToken + "'.");
-						throw new OAuthRejectedException("Cannot validate token.");
-					}
-					
-					if (!requestTokenStoreData.getConsumerKey().equals(oauthParameters.getValue(OAuthParameters.OAUTH_CONSUMER_KEY))) {
-						throw new OAuthRejectedException("Consumer key invalid.");
-					}
-					
-					if (!requestTokenStoreData.isAuthorized()) {
-						logger.error("Request token '" + authorizedToken + "' is not authorized yet.");
-						throw new OAuthRejectedException("Token unauthorized.");
-					}
-					
-					if (!requestTokenStoreData.getVerifier().equals(verifier)) {
-						logger.error("stored oauth_verifier=\"" + requestTokenStoreData.getVerifier() + "\" is not equal to header oauth_verifier=\"" + verifier + "\".");
-						throw new OAuthRejectedException("Invalid verification.");
-					}
-					
-					AccessTokenStoreData accessTokenStoreData = new AccessTokenStoreData();
-					long timestamp = System.currentTimeMillis();
-					accessTokenStoreData.setConsumerKey(oauthParameters.getValue(OAuthParameters.OAUTH_CONSUMER_KEY));
-					accessTokenStoreData.setCreationTime(timestamp);
-					accessTokenStoreData.setMaximumValidity(getAccessTokenValidity());
-					accessTokenStoreData.setToken(getAccessTokenGenerator().generateToken());
-					String tokenSecret = null;
-					if (tokenSecretLength > 1) {
-						tokenSecret = tokenSecretGenerator.generateToken(new byte[tokenSecretLength]);
-					} else {
-						tokenSecret = tokenSecretGenerator.generateToken();
-					}
-					accessTokenStoreData.setTokenSecret(tokenSecret);
-					
-					//save
-					getAccessTokenStore().save(accessTokenStoreData);
-					
-					//Successful save
-					accessToken = new AccessToken(accessTokenStoreData.getToken(), accessTokenStoreData.getTokenSecret(), new HashMap<String, String>());
-	//			}
+				if (!requestTokenStoreData.getConsumerKey().equals(consumerKey)) {
+					throw new OAuthRejectedException("Consumer key invalid.");
+				}
+				
+				if (!requestTokenStoreData.isAuthorized()) {
+					logger.error("Request token '" + authorizedToken + "' is not authorized yet.");
+					throw new OAuthRejectedException("Token unauthorized.");
+				}
+				
+				if (!requestTokenStoreData.getVerifier().equals(verifier)) {
+					logger.error("stored oauth_verifier=\"" + requestTokenStoreData.getVerifier() + "\" is not equal to header oauth_verifier=\"" + verifier + "\".");
+					throw new OAuthRejectedException("Invalid verification.");
+				}
+				
+				AccessTokenStoreData accessTokenStoreData = new AccessTokenStoreData();
+				long timestamp = System.currentTimeMillis();
+				accessTokenStoreData.setUserId(requestTokenStoreData.getUserId());
+				accessTokenStoreData.setConsumerKey(consumerKey);
+				accessTokenStoreData.setCreationTime(timestamp);
+				accessTokenStoreData.setMaximumValidity(getAccessTokenValidity());
+				accessTokenStoreData.setToken(getAccessTokenGenerator().generateToken());
+				String tokenSecret = null;
+				if (tokenSecretLength > 1) {
+					tokenSecret = tokenSecretGenerator.generateToken(new byte[tokenSecretLength]);
+				} else {
+					tokenSecret = tokenSecretGenerator.generateToken();
+				}
+				accessTokenStoreData.setTokenSecret(tokenSecret);
+				
+				//save
+				getAccessTokenStore().save(accessTokenStoreData);
+				
+				//Successful save
+				accessToken = new AccessToken(accessTokenStoreData.getToken(), accessTokenStoreData.getTokenSecret(), new HashMap<String, String>());
 			}
 		} catch (NullPointerException e) {
-			// TODO Auto-generated catch block
-			throw new OAuthException(e.getLocalizedMessage(), e);
-		} catch (OAuthException e) {
 			// TODO Auto-generated catch block
 			throw new OAuthException(e.getLocalizedMessage(), e);
 		} catch (StoreException e) {
@@ -348,7 +337,16 @@ public class OAuth1TokenManager extends AbstractOAuthTokenManager {
 		return accessToken;
 	}
 	
-	public boolean validateOAuthHeaderParameters(String requestMethod, String tokenUrl, OAuthParameters oauthParameters) throws OAuthException {
+	/**
+	 * Validates the OAuth parameters received from the HTTP Authorization header.
+	 * 
+	 * @param requestMethod the HTTP method ("GET"/"POST", etc.)
+	 * @param tokenUrl
+	 * @param oauthParameters
+	 * @return
+	 * @throws OAuthException
+	 */
+	public boolean validateOAuthHeaderParameters(String requestMethod, String tokenUrl, OAuth1Parameters oauthParameters) throws OAuthException {
 		// TODO Auto-generated method stub
 		if (requestMethod == null || requestMethod.isEmpty()) {
 			throw new OAuthException("No HTTP request method provided.");
@@ -358,13 +356,13 @@ public class OAuth1TokenManager extends AbstractOAuthTokenManager {
 			throw new OAuthException("No token URL provided.");
 		}
 		
-		String requestSignature = oauthParameters.getValue(OAuthParameters.OAUTH_SIGNATURE);
-		String signatureMethod = oauthParameters.getValue(OAuthParameters.OAUTH_SIGNATURE_METHOD);
+		String requestSignature = oauthParameters.getOAuthSignature();
+		String signatureMethod = oauthParameters.getOAuthSignatureMethod();
 		logger.debug("oauth_signature: " + requestSignature + ", oauth_signature_method: " + signatureMethod);
 		
 		//Follow the spec by seeing if we are NOT PLAINTEXT and we have nonce and timestamp
-		String oauthNonce = oauthParameters.getValue(OAuthParameters.OAUTH_NONCE);
-		String oauthTimestamp = oauthParameters.getValue(OAuthParameters.OAUTH_TIMESTAMP);
+		String oauthNonce = oauthParameters.getOAuthNonce();
+		String oauthTimestamp = oauthParameters.getOAuthTimestamp();
 		
 		if (!OAuthSignatureMethod.SIGNATURE_METHOD_PLAINTEXT.equals(signatureMethod)) {
 			if (oauthNonce == null || oauthTimestamp == null) {
@@ -372,13 +370,19 @@ public class OAuth1TokenManager extends AbstractOAuthTokenManager {
 			}
 		}
 		
+		//Validate oauth_version
+		String oauthVersion = oauthParameters.getOAuthVersion();
+		if (oauthVersion != null && !OAuth1ServiceProvider.PROTOCOL_VERSION.equals(oauthVersion)) {
+			throw new OAuthException("oauth_version MUST be set to \"" + OAuth1ServiceProvider.PROTOCOL_VERSION + "\".");
+		}
+		
 		//Begin....	
 		try {
-			String oauthToken = oauthParameters.getValue(OAuthParameters.OAUTH_TOKEN);
+			String oauthToken = oauthParameters.getOAuthToken();
 			long now = System.currentTimeMillis();
-			ConsumerKeyStoreData consumerKeyData = getConsumerKeyStore().find(oauthParameters.getValue(OAuthParameters.OAUTH_CONSUMER_KEY));
+			ConsumerKeyStoreData consumerKeyData = getConsumerKeyStore().find(oauthParameters.getOAuthConsumerKey());
 			if (consumerKeyData == null) {
-				throw new OAuthAuthorizationException("Invalid " + OAuthParameters.OAUTH_CONSUMER_KEY + ".");
+				throw new OAuthAuthorizationException("Invalid " + OAuth1Parameters.OAUTH_CONSUMER_KEY + ".");
 			}
 			
 			//Let's prevent Replay-Attack
@@ -406,12 +410,6 @@ public class OAuth1TokenManager extends AbstractOAuthTokenManager {
 				usedNonceStore.save(alreadyUsedNonceStoreData);
 			}
 			
-			//Validate oauth_version
-			String oauthVersion = oauthParameters.getValue(OAuthParameters.OAUTH_VERSION);
-			if (oauthVersion != null && !OAuth1ServiceProvider.PROTOCOL_VERSION.equals(oauthVersion)) {
-				throw new OAuthException("oauth_version MUST be set to \"" + OAuth1ServiceProvider.PROTOCOL_VERSION + "\".");
-			}
-			
 			//First, get a signature method
 			OAuthSignatureBuilder oauthSignatureBuilder = new OAuthSignatureBuilder();
 			oauthSignatureBuilder.setConsumerSecret(consumerKeyData.getConsumerSecret());
@@ -433,7 +431,7 @@ public class OAuth1TokenManager extends AbstractOAuthTokenManager {
 
 			//Now, validate
 			Map<String, String> oauthMap = oauthParameters.getOAuthParameters();
-			oauthMap.remove(OAuthParameters.OAUTH_REALM);
+			oauthMap.remove(OAuth1Parameters.OAUTH_REALM);
 			String baseString = OAuth1Util.getSignatureBaseString(requestMethod, tokenUrl, oauthMap);
 			String derivedSignature = signature.sign(baseString);
 			
@@ -445,6 +443,35 @@ public class OAuth1TokenManager extends AbstractOAuthTokenManager {
 			// TODO Auto-generated catch block
 			throw new OAuthAuthorizationException("Store Exception: " + e.getLocalizedMessage(), e);
 		}
+	}
+	
+	/**
+	 * Verify if the access token provided is indeed related to the one we have in the store.
+	 * @param consumerKey
+	 * @param accessToken
+	 * @return <b>true</b> if valid, <b>false</b> otherwise.
+	 * @throws OAuthException
+	 */
+	public boolean canAccessProtectedResources(String consumerKey, String accessToken) throws OAuthException {
+		
+		try {
+			ExceptionUtil.throwIfNull(consumerKey, OAuth1Parameters.OAUTH_CONSUMER_KEY + " is required.");
+			ExceptionUtil.throwIfNull(accessToken, OAuth1Parameters.OAUTH_TOKEN + " is required.");
+			
+			AccessTokenStoreData accessTokenSD = getAccessTokenStore().find(accessToken);
+			if (accessTokenSD == null) {
+				throw new OAuthRejectedException("No access Token found.");
+			}
+			
+			if (!accessTokenSD.getConsumerKey().equals(consumerKey)) {
+				throw new OAuthRejectedException("Invalid access token for Consumer Key.");
+			}
+		} catch (StoreException e) {
+			// TODO Auto-generated catch block
+			throw new OAuthAuthorizationException("Store Exception: " + e.getLocalizedMessage(), e);
+		}
+		
+		return true;
 	}
 	
 //	public String getOAuthCallback(String requestToken) throws OAuthException {

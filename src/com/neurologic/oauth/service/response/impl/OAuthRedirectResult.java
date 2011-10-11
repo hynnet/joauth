@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.neurologic.oauth.service.provider.response;
+package com.neurologic.oauth.service.response.impl;
 
 import java.io.IOException;
 
@@ -12,24 +12,26 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
+import com.neurologic.oauth.service.response.AbstractOAuthResult;
+import com.neurologic.oauth.service.response.ServiceContext;
+
 /**
  * @author Buhake Sindi
  * @since 19 September 2011
  *
  */
-public class DefaultRedirectResult implements RedirectResult {
+public class OAuthRedirectResult extends AbstractOAuthResult {
 
-	protected final Logger logger = Logger.getLogger(this.getClass());
+	private static final Logger logger = Logger.getLogger(OAuthRedirectResult.class);
 	private static final String HTTP_LOCATION_HEADER = "Location";
 	private String location;
 	private boolean contextRelative;
 	private boolean http10Compatible;
 	
-	
 	/**
-	 * Default constructor (in case of <code>DefaultRedirectResult.newInstance()</code>).
+	 * Default constructor (in case of <code>OAuthRedirectResult.newInstance()</code>).
 	 */
-	public DefaultRedirectResult() {
+	public OAuthRedirectResult() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
@@ -37,7 +39,7 @@ public class DefaultRedirectResult implements RedirectResult {
 	/**
 	 * @param location
 	 */
-	public DefaultRedirectResult(String location) {
+	public OAuthRedirectResult(String location) {
 		this(location, false);
 	}
 
@@ -45,7 +47,7 @@ public class DefaultRedirectResult implements RedirectResult {
 	 * @param location
 	 * @param contextRelative
 	 */
-	public DefaultRedirectResult(String location, boolean contextRelative) {
+	public OAuthRedirectResult(String location, boolean contextRelative) {
 		this(location, contextRelative, false);
 	}
 
@@ -54,7 +56,7 @@ public class DefaultRedirectResult implements RedirectResult {
 	 * @param contextRelative
 	 * @param http10Compatible
 	 */
-	public DefaultRedirectResult(String location, boolean contextRelative, boolean http10Compatible) {
+	public OAuthRedirectResult(String location, boolean contextRelative, boolean http10Compatible) {
 		super();
 		setLocation(location);
 		setContextRelative(contextRelative);
@@ -83,11 +85,18 @@ public class DefaultRedirectResult implements RedirectResult {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.provider.response.RedirectResult#sendRedirect(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 * @see com.neurologic.oauth.service.response.OAuthResult#execute(com.neurologic.oauth.service.response.ServiceContext)
 	 */
 	@Override
-	public void sendRedirect(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	public void execute(ServiceContext context) throws IOException {
 		// TODO Auto-generated method stub
+		if (context == null) {
+			throw new IOException("No Service context provided.");
+		}
+		
+		HttpServletRequest request = (HttpServletRequest) context.getRequest();
+		HttpServletResponse response = (HttpServletResponse) context.getResponse();
+		
 		if (location.startsWith("/") && contextRelative) {
 			RequestDispatcher dispatcher = request.getRequestDispatcher(location);
 			try {
