@@ -3,18 +3,15 @@
  */
 package com.neurologic.oauth.service.provider;
 
-import java.io.Closeable;
-import java.io.IOException;
-
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import net.oauth.exception.OAuthException;
 import net.oauth.provider.OAuthServiceProvider;
 
+import com.neurologic.exception.OAuthAuthorizationException;
+import com.neurologic.exception.RequestMethodException;
+import com.neurologic.exception.SecureChannelException;
 import com.neurologic.oauth.service.provider.manager.OAuthTokenManager;
-import com.neurologic.oauth.service.provider.response.ExceptionResponseMessage;
-import com.neurologic.oauth.service.provider.response.OAuthResponseMessage;
 
 /**
  * @author Buhake Sindi
@@ -34,54 +31,23 @@ public abstract class OAuthTokenProviderService<TM extends OAuthTokenManager, SP
 		this.serviceProvider = serviceProvider;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.OAuthService#execute(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	/**
+	 * This methods checks if the request received from the client conforms to OAuth protocol.
+	 * 
+	 * @param request
+	 * @throws OAuthException, if the check fails. We need the exception message.
 	 */
-	@Override
-	public final void execute(HttpServletRequest request, HttpServletResponse response) throws OAuthException {
-		// TODO Auto-generated method stub
-		OAuthResponseMessage responseMessage = null;
-		
-		try {
-			responseMessage = execute(request);
-		} catch (OAuthException e) {
-			// TODO Auto-generated catch block
-			logger.error("OAuthException: " + e.getLocalizedMessage(), e);
-			responseMessage = new ExceptionResponseMessage(e);
+	protected void validateRequest(HttpServletRequest request) throws OAuthException {
+		if (!isSecure(request, true)) {
+			throw new SecureChannelException("This channel, " + request.getScheme() + " is unsecure.");
 		}
 		
-		//Execute response
-		if (responseMessage != null) {
-			try {
-				response.reset();
-				if (responseMessage.getCacheControl() != null) {
-					response.setHeader("Cache-Control", responseMessage.getCacheControl());
-				}
-				response.setStatus(responseMessage.getStatusCode());
-				response.setContentType(responseMessage.getContentType());
-				response.setContentLength(responseMessage.getContentLength());
-				response.getWriter().write(responseMessage.getMessage());
-				response.getWriter().flush();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} finally {
-				// TODO Auto-generated catch block
-				try {
-					close(response.getWriter());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					logger.error("Error closing response writer: " + e.getLocalizedMessage(), e);
-				}
-			}
+		if (!"POST".equals(request.getMethod())) {
+			throw new RequestMethodException("Cannot execute request with " + request.getMethod() + " HTTP method.");
+		}
+		
+		if (request.getHeader(HTTP_HEADER_AUTHORIZATION) == null) {
+			throw new OAuthAuthorizationException("No '" + HTTP_HEADER_AUTHORIZATION + "' header found.");
 		}
 	}
-	
-	private void close(Closeable resource) throws IOException {
-		if (resource != null) {
-			resource.close();
-		}
-	}
-	
-	protected abstract OAuthResponseMessage execute(HttpServletRequest request) throws OAuthException;
 }

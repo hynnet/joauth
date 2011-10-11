@@ -22,6 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 /**
  * @author Bienfait Sindi
  * @since 28 November 2010
@@ -29,6 +31,7 @@ import java.util.Map;
  */
 public abstract class AbstractHttpClient implements HttpClient {
 	
+	protected final Logger logger = Logger.getLogger(this.getClass());
 	protected List<MessageHeader> requestHeaders;
 	protected List<MessageHeader> responseHeaders;
 	protected Map<String, String> parameterMap;
@@ -62,13 +65,9 @@ public abstract class AbstractHttpClient implements HttpClient {
 	public String getRequestHeaderValue(String name) {
 		// TODO Auto-generated method stub
 		if (requestHeaders != null) {
-			Iterator<MessageHeader> iter = requestHeaders.iterator();
-			synchronized (iter) {
-				while (iter.hasNext()) {
-					MessageHeader mh = iter.next();
-					if (name.equals(mh.getName())) {
-						return mh.getValue();
-					}
+			for (MessageHeader mh : requestHeaders) {
+				if (name.equals(mh.getName())) {
+					return mh.getValue();
 				}
 			}
 		}
@@ -119,13 +118,9 @@ public abstract class AbstractHttpClient implements HttpClient {
 	public String getResponseHeaderValue(String name) {
 		// TODO Auto-generated method stub
 		if (responseHeaders != null) {
-			Iterator<MessageHeader> iter = responseHeaders.iterator();
-			synchronized (iter) {
-				while (iter.hasNext()) {
-					MessageHeader mh = iter.next();
-					if (name.equals(mh.getName())) {
-						return mh.getValue();
-					}
+			for (MessageHeader mh : responseHeaders) {
+				if (name.equals(mh.getName())) {
+					return mh.getValue();
 				}
 			}
 		}
@@ -168,6 +163,7 @@ public abstract class AbstractHttpClient implements HttpClient {
 		if (parameterMap.containsKey(name)) {
 			removeParameter(name);
 		}
+		
 		parameterMap.put(name, value);
 	}
 

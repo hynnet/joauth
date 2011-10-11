@@ -30,8 +30,6 @@ import java.util.Map;
 import net.oauth.parameters.QueryKeyValuePair;
 import net.oauth.util.OAuth1Util;
 
-import org.apache.log4j.Logger;
-
 import com.neurologic.exception.HttpException;
 import com.neurologic.http.AbstractHttpClient;
 import com.neurologic.http.MessageHeader;
@@ -43,7 +41,6 @@ import com.neurologic.http.MessageHeader;
  */
 public class DefaultHttpClient extends AbstractHttpClient {
 
-	private static final Logger logger = Logger.getLogger(DefaultHttpClient.class);
 	private URLConnection urlConnection;
 	
 	/**
@@ -100,20 +97,24 @@ public class DefaultHttpClient extends AbstractHttpClient {
 		OutputStream output = null;
 		
 		try {
+			String s = url;
 			if ("GET".equals(requestMethod)) {
-				urlConnection = new URL(url + ((questionMarkPos > 0) ? "&" : "?") + queryString).openConnection();
+				s += ((questionMarkPos > 0) ? "&" : "?") + queryString;
 			} else if ("POST".equals(requestMethod)) {
-				urlConnection = new URL(url).openConnection();
 				if (getRequestHeaderValue("Content-Type") == null) {
 					addRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 				}
 				addRequestHeader("Content-Length", Integer.toString(queryString.getBytes("UTF-8").length));
 			}
+			
+			urlConnection = new URL(s).openConnection();
 			urlConnection.setDoInput(true);
 			populateRequestProperty();
-			urlConnection.addRequestProperty("Method", requestMethod);
 			
 			if ("POST".equals(requestMethod)) {
+				if (urlConnection instanceof HttpURLConnection) {
+					((HttpURLConnection)urlConnection).setRequestMethod(requestMethod);
+				}
 				urlConnection.setDoOutput(true);
 				output = urlConnection.getOutputStream();
 				output.write(queryString.getBytes("UTF-8"));

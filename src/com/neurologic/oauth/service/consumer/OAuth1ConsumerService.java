@@ -17,11 +17,10 @@
 package com.neurologic.oauth.service.consumer;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import net.oauth.consumer.OAuth1Consumer;
 import net.oauth.exception.OAuthException;
-import net.oauth.parameters.OAuthParameters;
+import net.oauth.parameters.OAuth1Parameters;
 import net.oauth.signature.OAuthSignature;
 import net.oauth.signature.impl.OAuthHmacSha1Signature;
 import net.oauth.signature.impl.OAuthPlainTextSignature;
@@ -30,8 +29,6 @@ import net.oauth.token.oauth1.AccessToken;
 import net.oauth.token.oauth1.AuthorizedToken;
 import net.oauth.token.oauth1.RequestToken;
 
-import org.apache.log4j.Logger;
-
 /**
  * @author Bienfait Sindi
  * @since 27 November 2010
@@ -39,38 +36,19 @@ import org.apache.log4j.Logger;
  */
 public abstract class OAuth1ConsumerService extends AbstractOAuthConsumerService<OAuth1Consumer, AccessToken> {
 
-	protected final Logger logger = Logger.getLogger(this.getClass());
-	private OAuth1Consumer consumer;
-	
 	/* (non-Javadoc)
-	$ * @see com.neurologic.oauth.service.OAuthService#setOAuthConsumer(java.lang.Object)
+	 * @see com.neurologic.oauth.service.AbstractOAuthConsumerService#execute(javax.servlet.http.HttpServletRequest)
 	 */
 	@Override
-	public void setOAuthConsumer(OAuth1Consumer consumer) {
-		// TODO Auto-generated method stub
-		this.consumer = consumer;
-	}
-
-	/**
-	 * @return the consumer
-	 */
-	protected OAuth1Consumer getConsumer() {
-		return consumer;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.OAuthService#execute(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-	 */
-	@Override
-	public void execute(HttpServletRequest request, HttpServletResponse response) throws OAuthException {
+	protected void execute(HttpServletRequest request) throws OAuthException {
 		// TODO Auto-generated method stub
 		logger.info("execute()");
 		
-		String oauthToken = request.getParameter(OAuthParameters.OAUTH_TOKEN);
-		String verifier = request.getParameter(OAuthParameters.OAUTH_VERIFIER);
+		String oauthToken = request.getParameter(OAuth1Parameters.OAUTH_TOKEN);
+		String verifier = request.getParameter(OAuth1Parameters.OAUTH_VERIFIER);
 		
 		if (oauthToken == null && verifier == null) {
-			throw new OAuthException("No OAuth Parameters (" + OAuthParameters.OAUTH_TOKEN + ", " + OAuthParameters.OAUTH_VERIFIER + ") found.");
+			throw new OAuthException("No OAuth Parameters (" + OAuth1Parameters.OAUTH_TOKEN + ", " + OAuth1Parameters.OAUTH_VERIFIER + ") found.");
 		}
 		
 		RequestToken requestToken = getRequestToken(request);

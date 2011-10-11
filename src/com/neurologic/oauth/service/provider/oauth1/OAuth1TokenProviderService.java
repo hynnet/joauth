@@ -16,18 +16,23 @@
  */
 package com.neurologic.oauth.service.provider.oauth1;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import net.oauth.exception.OAuthException;
+import net.oauth.parameters.OAuth1Parameters;
+import net.oauth.parameters.OAuthErrorParameter;
 import net.oauth.parameters.OAuthParameters;
 import net.oauth.provider.OAuth1ServiceProvider;
-import net.oauth.util.OAuth1Util;
 
 import com.neurologic.exception.OAuthAuthorizationException;
 import com.neurologic.oauth.service.provider.OAuthTokenProviderService;
 import com.neurologic.oauth.service.provider.manager.OAuth1TokenManager;
+import com.neurologic.oauth.service.request.authentication.HttpAuthorizationChallenger;
+import com.neurologic.oauth.service.request.authentication.OAuth1HttpAuthorizationChallenger;
+import com.neurologic.oauth.service.response.Result;
+import com.neurologic.oauth.service.response.formatter.UrlEncodedParameterFormatter;
+import com.neurologic.oauth.service.response.impl.OAuthMessageResult;
 
 /**
  * @author Buhake Sindi
@@ -35,45 +40,48 @@ import com.neurologic.oauth.service.provider.manager.OAuth1TokenManager;
  *
  */
 public abstract class OAuth1TokenProviderService extends OAuthTokenProviderService<OAuth1TokenManager, OAuth1ServiceProvider> {
-
-	private static final String OAUTH_AUTHORIZATION_HEADER_START = "OAuth ";
-
-	protected OAuthParameters getOAuthAuthorizationParameters(HttpServletRequest request) throws OAuthAuthorizationException {
-		if (request == null) {
-			return null;
+	
+	private OAuthErrorParameter packException(OAuthException exception) {
+		OAuthErrorParameter parameter = new OAuthErrorParameter();
+		if (exception != null) {
+			parameter.setError(exception.getClass().getName() + ": " + exception.getLocalizedMessage());
 		}
 		
-		String header = request.getHeader(HTTP_HEADER_AUTHORIZATION);
+		return parameter;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.neurologic.oauth.service.provider.AbstractOAuthProviderService#execute(javax.servlet.http.HttpServletRequest)
+	 */
+	@Override
+	protected Result execute(HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		OAuthMessageResult result = new OAuthMessageResult(new UrlEncodedParameterFormatter());
+		OAuthParameters parameters = null;
+		int statusCode;
 		
-		if (header == null || header.isEmpty()) {
-			throw new OAuthAuthorizationException("Cannot find HTTP Header '" + HTTP_HEADER_AUTHORIZATION + "'.");
-		}
-		
-		if (!header.startsWith(OAUTH_AUTHORIZATION_HEADER_START)) {
-			throw new OAuthAuthorizationException("HTTP Authorization header is invalid.");
-		}
-		
-		if (logger.isInfoEnabled()) {
-			logger.info(HTTP_HEADER_AUTHORIZATION + ": " + header);
-		}
-		
-		//TODO: This is ugly, but what can I do?
-		Map<String, String> oauthHeaderParameters = new HashMap<String, String>();
-		String[] headerValues = header.substring(OAUTH_AUTHORIZATION_HEADER_START.length()).split(",");
-		for (String headerValue : headerValues) {
-			String[] headerTokens = headerValue.split("=");
-			String key = headerTokens[0];
-			if (!OAuthParameters.OAUTH_REALM.equals(key) && !key.startsWith("oauth_")) {
-				throw new OAuthAuthorizationException("OAuth Authorization has unrecognizable key '" + key + "' (String: " + headerValue + ".");
+		try {
+			validateRequest(request);
+			
+			//Let's get the Authorization parameters
+			HttpAuthorizationChallenger<OAuth1Parameters> challenger = new OAuth1HttpAuthorizationChallenger();
+			parameters = executeInternal(request, challenger.processChallenge(request.getHeader(HTTP_HEADER_AUTHORIZATION)));
+			statusCode = HttpServletResponse.SC_OK;
+		} catch (OAuthException e) {
+			// TODO Auto-generated catch block
+			logger.error(e.getClass().getName() + ": " + e.getLocalizedMessage(), e);
+			statusCode = HttpServletResponse.SC_BAD_REQUEST;
+			if (e instanceof OAuthAuthorizationException) {
+				statusCode = HttpServletResponse.SC_UNAUTHORIZED;
 			}
 			
-			String hv = headerTokens[1];
-			if (!hv.startsWith("\"") && !hv.endsWith("\"")) {
-				throw new OAuthAuthorizationException("OAuth Authorization has an incorrect value (String: " + headerValue + ".");
-			}
-			oauthHeaderParameters.put(key, OAuth1Util.decode(hv.substring(1, hv.length() - 1)));
+			parameters = packException(e);
 		}
 		
-		return new OAuthParameters(oauthHeaderParameters);
+		result.setOAuthParameters(parameters);
+		result.setStatusCode(statusCode);
+		return result;
 	}
+	
+	protected abstract OAuth1Parameters executeInternal(HttpServletRequest request, final OAuth1Parameters authorizationParameters) throws OAuthException;
 }

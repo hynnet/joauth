@@ -21,12 +21,11 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import net.oauth.exception.OAuthException;
 import net.oauth.parameters.HeaderKeyValuePair;
-import net.oauth.parameters.OAuthParameters;
+import net.oauth.parameters.OAuth1Parameters;
 import net.oauth.parameters.QueryKeyValuePair;
 import net.oauth.provider.OAuth1ServiceProvider;
 import net.oauth.signature.ConsumerSecretBasedOAuthSignature;
@@ -40,7 +39,7 @@ import org.apache.log4j.Logger;
 
 import com.neurologic.exception.HttpException;
 import com.neurologic.http.HttpClient;
-import com.neurologic.http.impl.ApacheHttpClient;
+import com.neurologic.http.impl.DefaultHttpClient;
 
 /**
  * @author Bienfait Sindi
@@ -100,11 +99,11 @@ public class OAuth1Consumer {
 		RequestToken requestToken = null;
 		String requestTokenUrl = serviceProvider.getRequestTokenUrl();
 		String httpRequestMethod = "POST";
-		HttpClient client = new ApacheHttpClient();
+		HttpClient client = new DefaultHttpClient();
 		
 		try {
 			long timestamp = OAuth1Util.getTimestamp();
-			OAuthParameters oauthParameters = new OAuthParameters();
+			OAuth1Parameters oauthParameters = new OAuth1Parameters();
 			oauthParameters.setOAuthConsumerKey(consumerKey);
 			oauthParameters.setOAuthNonce(OAuth1Util.getNONCE());
 			oauthParameters.setOAuthSignatureMethod(signature.getOAuthSignatureMethod());
@@ -115,7 +114,7 @@ public class OAuth1Consumer {
 			}
 			
 			//We are cloning here...
-			Map<String, String> map = new LinkedHashMap<String, String>(oauthParameters.getOAuthParameters());
+			Map<String, String> map = oauthParameters.getOAuthParameters(); //new LinkedHashMap<String, String>(oauthParameters.getOAuthParameters());
 			if (additionalParameters != null) {
 				map.putAll(additionalParameters);
 			}
@@ -138,7 +137,7 @@ public class OAuth1Consumer {
 
 			Map<String, String> responseMap = generateToken(data);
 			if (responseMap != null) {
-				requestToken = new RequestToken(responseMap.get(OAuthParameters.OAUTH_TOKEN), responseMap.get(OAuthParameters.OAUTH_TOKEN_SECRET), Boolean.valueOf(responseMap.get(OAuthParameters.OAUTH_CALLBACK_CONFIRMED)));
+				requestToken = new RequestToken(responseMap.get(OAuth1Parameters.OAUTH_TOKEN), responseMap.get(OAuth1Parameters.OAUTH_TOKEN_SECRET), Boolean.valueOf(responseMap.get(OAuth1Parameters.OAUTH_CALLBACK_CONFIRMED)));
 			}
 		} catch (GeneralSecurityException e) {
 			// TODO Auto-generated catch block
@@ -179,7 +178,7 @@ public class OAuth1Consumer {
 		}
 		
 		if (requestToken != null && !requestToken.isEmpty()) {
-			additionalParameters.put(OAuthParameters.OAUTH_TOKEN, requestToken);
+			additionalParameters.put(OAuth1Parameters.OAUTH_TOKEN, requestToken);
 		}
 		
 		String oauthAuthorizeUrl = serviceProvider.getAuthorizationUrl();	
@@ -213,13 +212,13 @@ public class OAuth1Consumer {
 		}
 		
 		AccessToken accessToken = null;
-		HttpClient client = new ApacheHttpClient();
+		HttpClient client = new DefaultHttpClient();
 		String accessTokenUrl = serviceProvider.getAccessTokenUrl();
 		String httpRequestMethod = "POST";
 		
 		try {
 			long timestamp = OAuth1Util.getTimestamp();
-			OAuthParameters oauthParameters = new OAuthParameters();
+			OAuth1Parameters oauthParameters = new OAuth1Parameters();
 			oauthParameters.setOAuthConsumerKey(consumerKey);
 			oauthParameters.setOAuthNonce(OAuth1Util.getNONCE());
 			oauthParameters.setOAuthSignatureMethod(signature.getOAuthSignatureMethod());
@@ -244,7 +243,7 @@ public class OAuth1Consumer {
 
 			Map<String, String> responseMap = generateToken(data);
 			if (responseMap != null) {
-				accessToken = new AccessToken(responseMap.remove(OAuthParameters.OAUTH_TOKEN), responseMap.remove(OAuthParameters.OAUTH_TOKEN_SECRET), responseMap);
+				accessToken = new AccessToken(responseMap.remove(OAuth1Parameters.OAUTH_TOKEN), responseMap.remove(OAuth1Parameters.OAUTH_TOKEN_SECRET), responseMap);
 			}
 		} catch (GeneralSecurityException e) {
 			// TODO Auto-generated catch block

@@ -18,9 +18,9 @@ package com.neurologic.oauth.service.consumer;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import net.oauth.consumer.OAuth2Consumer;
 import net.oauth.enums.GrantType;
@@ -30,7 +30,6 @@ import net.oauth.token.oauth2.AccessToken;
 import net.oauth.token.oauth2.AuthorizationToken;
 import net.oauth.util.OAuth2Util;
 
-import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,30 +40,11 @@ import org.json.JSONObject;
  */
 public abstract class OAuth2ConsumerService extends AbstractOAuthConsumerService<OAuth2Consumer, AccessToken> {
 
-	protected final Logger logger = Logger.getLogger(this.getClass());
-	private OAuth2Consumer consumer;
-	
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.OAuthService#setOAuthConsumer(java.lang.Object)
+	 * @see com.neurologic.oauth.service.AbstractOAuthConsumerService#execute(javax.servlet.http.HttpServletRequest)
 	 */
 	@Override
-	public void setOAuthConsumer(OAuth2Consumer consumer) {
-		// TODO Auto-generated method stub
-		this.consumer = consumer;
-	}
-
-	/**
-	 * @return the consumer
-	 */
-	protected OAuth2Consumer getConsumer() {
-		return consumer;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.OAuthService#execute(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-	 */
-	@Override
-	public final void execute(HttpServletRequest request, HttpServletResponse response) throws OAuthException {
+	protected final void execute(HttpServletRequest request) throws OAuthException {
 		// TODO Auto-generated method stub
 		AccessToken accessToken = null;
 		Map<String, String> parameterMap = extractParameterMap(request);
@@ -126,15 +106,13 @@ public abstract class OAuth2ConsumerService extends AbstractOAuthConsumerService
 	 */
 	protected final void throwOAuthErrorException(Map<String, String> parameterMap) throws OAuthException {
 		JSONObject errorJson = new JSONObject();
-		for (String parameterName : parameterMap.keySet()) {
-			if (parameterName.startsWith("error")) {
-				try {
-					errorJson.put(parameterName, parameterMap.get(parameterName));
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					//This should never happen?
-					logger.error("JSONException: ", e);
-				}
+		for (Entry<String, String> entry : parameterMap.entrySet()) {
+			try {
+				errorJson.put(entry.getKey(), entry.getValue());
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				//This should never happen?
+				logger.error("JSONException: ", e);
 			}
 		}
 		

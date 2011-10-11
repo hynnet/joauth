@@ -8,6 +8,7 @@ import net.oauth.parameters.OAuth2Parameters;
 import net.oauth.token.oauth1.AuthorizedToken;
 import net.oauth.token.oauth2.AccessToken;
 import net.oauth.token.oauth2.AuthorizationToken;
+import net.oauth.util.OAuth2Util;
 
 import com.neurologic.exception.OAuthRejectedException;
 import com.neurologic.exception.StoreException;
@@ -119,12 +120,16 @@ public class OAuth2TokenManager extends AbstractOAuthTokenManager {
 		return (consumerKeyData != null && consumerKeyData.getConsumerSecret().equals(consumerSecret));
 	}
 	
-	public AuthorizationToken createAuthorizationToken(String clientId, String redirectUri) throws OAuthException {
+	public AuthorizationToken createAuthorizationToken(String clientId, String redirectUri, String scope, String state) throws OAuthException {
 		AuthorizationToken authorizationToken = null;
 		
 		try {
 			if (getConsumerKeyStore().find(clientId) == null) {
 				throw new OAuthException("No consumer key found.");
+			}
+			
+			if (redirectUri != null && !OAuth2Util.isRedirectEndpointUriValid(redirectUri)) {
+				throw new OAuthException("OAuth 2 '" + OAuth2Parameters.REDIRECT_URI + "' is not a fully qualified URI (see Section 3.1.2).");
 			}
 			
 			AuthorizationTokenStoreData authTokenStoreData = new AuthorizationTokenStoreData();
@@ -134,6 +139,8 @@ public class OAuth2TokenManager extends AbstractOAuthTokenManager {
 			authTokenStoreData.setCreationTime(now);
 			authTokenStoreData.setMaximumValidity(getAuthorizedTokenValidity());
 			authTokenStoreData.setRedirectUri(redirectUri);
+			authTokenStoreData.setScope(scope);
+			authTokenStoreData.setState(state);
 			
 			//save
 			authorizationTokenStore.save(authTokenStoreData);
@@ -142,6 +149,7 @@ public class OAuth2TokenManager extends AbstractOAuthTokenManager {
 			authorizationToken = new AuthorizationToken();
 			authorizationToken.setCode(authTokenStoreData.getCode());
 			authorizationToken.setExpiresIn((int)(now / MILLISECOND));
+			authorizationToken.setState(state);
 		} catch (StoreException e) {
 			// TODO Auto-generated catch block
 			throw new OAuthException(e.getLocalizedMessage(), e);
@@ -150,10 +158,14 @@ public class OAuth2TokenManager extends AbstractOAuthTokenManager {
 		return authorizationToken;
 	}
 	
-	public AccessToken createAccessToken(String clientId, String code, String redirectUri) throws OAuthException {
+	public AccessToken createAccessToken(String clientId, String code, String redirectUri, String scope, String state) throws OAuthException {
 		AccessToken accessToken = null;
 		
 		try {
+			if (redirectUri != null && !OAuth2Util.isRedirectEndpointUriValid(redirectUri)) {
+				throw new OAuthException("OAuth 2 '" + OAuth2Parameters.REDIRECT_URI + "' is not a fully qualified URI (see Section 3.1.2).");
+			}
+			
 			AuthorizationTokenStoreData authorizationTokenSD = authorizationTokenStore.find(code);
 			if (authorizationTokenSD == null) {
 				throw new OAuthRejectedException("Authorization code not found.");
@@ -164,7 +176,7 @@ public class OAuth2TokenManager extends AbstractOAuthTokenManager {
 			}
 			
 			if (!authorizationTokenSD.getRedirectUri().equals(redirectUri)) {
-				throw new OAuthRejectedException("Invalid '" + OAuth2Parameters.REDIRECT_URI + "'.");
+				throw new OAuthRejectedException("'" + OAuth2Parameters.REDIRECT_URI + "' mismatch.");
 			}
 			
 			AccessTokenStoreData accessTokenSD = new AccessTokenStoreData();
@@ -182,7 +194,9 @@ public class OAuth2TokenManager extends AbstractOAuthTokenManager {
 			accessToken = new AccessToken();
 			accessToken.setAccessToken(accessTokenSD.getToken());
 			accessToken.setExpiresIn((int)(accessTokenSD.getMaximumValidity() / MILLISECOND));
-//			accessToken.set
+			accessToken.setRefreshToken(accessTokenSD.getRefreshToken());
+			accessToken.setScope(scope);
+			accessToken.setState(state);
 		} catch (StoreException e) {
 			// TODO Auto-generated catch block
 			throw new OAuthException(e.getLocalizedMessage(), e);

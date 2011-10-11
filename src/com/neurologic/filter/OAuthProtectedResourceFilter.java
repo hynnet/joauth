@@ -16,6 +16,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
+import com.neurologic.exception.OAuthAuthorizationException;
+
 /**
  * @author Buhake Sindi
  * @since 15 August 2011
@@ -23,8 +25,10 @@ import org.apache.log4j.Logger;
  */
 public abstract class OAuthProtectedResourceFilter implements Filter {
 	
+	protected static final String HTTP_HEADER_AUTHORIZATION = "Authorization";
 	protected final Logger logger = Logger.getLogger(OAuthProtectedResourceFilter.class);
 	private String realm;
+	private String oauthName;
 
 	/* (non-Javadoc)
 	 * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
@@ -37,6 +41,7 @@ public abstract class OAuthProtectedResourceFilter implements Filter {
 		}
 		
 		realm = filterConfig.getInitParameter("realm");
+		oauthName = filterConfig.getInitParameter("refOAuth");
 	}
 	
 	/* (non-Javadoc)
@@ -53,9 +58,17 @@ public abstract class OAuthProtectedResourceFilter implements Filter {
 	/**
 	 * @return the realm
 	 */
-	protected String getRealm() {
+	public String getRealm() {
 		return realm;
 	}
+
+	/**
+	 * @return the oauthName
+	 */
+	public String getOauthName() {
+		return oauthName;
+	}
+	
 
 	/* (non-Javadoc)
 	 * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse, javax.servlet.FilterChain)

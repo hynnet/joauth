@@ -40,12 +40,33 @@ public enum GrantType {
 		this.grantType = grantType;
 	}
 
-//	/**
-//	 * @return the grantType
-//	 */
-//	public String getGrantType() {
-//		return grantType;
-//	}
+	public static GrantType Of(String grantType) {
+		if (AUTHORIZATION_CODE.toString().equals(grantType)) {
+			return AUTHORIZATION_CODE;
+		}
+		
+		if (PASSWORD.toString().equals(grantType)) {
+			return PASSWORD;
+		}
+		
+		if (ASSERTION.toString().equals(grantType)) {
+			return ASSERTION;
+		}
+		
+		if (REFRESH_TOKEN.toString().equals(grantType)) {
+			return REFRESH_TOKEN;
+		}
+		
+		if (NONE.toString().equals(grantType)) {
+			return NONE;
+		}
+		
+		if (CLIENT_CREDENTIALS.toString().equals(grantType)) {
+			return CLIENT_CREDENTIALS;
+		}
+		
+		return null;
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Enum#toString()

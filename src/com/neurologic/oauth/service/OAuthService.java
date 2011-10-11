@@ -16,18 +16,14 @@
  */
 package com.neurologic.oauth.service;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import net.oauth.exception.OAuthException;
 
 /**
  * @author Buhake Sindi
  * @since 27 June 2011
  *
  */
-public interface OAuthService {
+public interface OAuthService extends Service {
 
 	public void setOAuthName(String oauthName);
-	public void execute(HttpServletRequest request, HttpServletResponse response) throws OAuthException;
+	
 }

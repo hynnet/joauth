@@ -3,21 +3,17 @@
  */
 package com.neurologic.oauth.service.provider.oauth2.access;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 
+import net.oauth.enums.GrantType;
+import net.oauth.enums.OAuth2Error;
 import net.oauth.exception.OAuthException;
-import net.oauth.parameters.KeyValuePair;
+import net.oauth.parameters.OAuth2Parameters;
 import net.oauth.parameters.OAuthParameters;
-import net.oauth.parameters.QueryKeyValuePair;
-import net.oauth.token.oauth1.AccessToken;
+import net.oauth.token.oauth2.AccessToken;
+import net.oauth.util.OAuth2Util;
 
-import com.neurologic.exception.OAuthAuthorizationException;
-import com.neurologic.oauth.service.provider.manager.OAuth2TokenManager;
 import com.neurologic.oauth.service.provider.oauth2.OAuth2TokenProviderService;
-import com.neurologic.oauth.service.provider.response.PlainTextResponseMessage;
-import com.neurologic.oauth.service.provider.response.ExceptionResponseMessage;
-import com.neurologic.oauth.service.provider.response.OAuthResponseMessage;
 
 /**
  * @author Buhake Sindi
@@ -27,26 +23,60 @@ import com.neurologic.oauth.service.provider.response.OAuthResponseMessage;
 public class OAuth2AccessTokenProviderService extends OAuth2TokenProviderService {
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.provider.AbstractOAuthProviderService#execute(javax.servlet.http.HttpServletRequest)
+	 * @see com.neurologic.oauth.service.provider.oauth2.OAuth2TokenProviderService#executeInternal(java.util.Map, com.neurologic.oauth.service.provider.oauth2.OAuth2TokenProviderService.Credential)
 	 */
 	@Override
-	protected OAuthResponseMessage execute(HttpServletRequest request) throws OAuthException {
+	protected OAuthParameters executeInternal(final Map<String, String> requestParameters, final Credential credential) {
 		// TODO Auto-generated method stub
-		OAuthResponseMessage oauthMessage = null;
-		String requestMethod = request.getMethod();
-		if (!"POST".equals(requestMethod)) {
-			throw new OAuthException("Cannot execute request with " + request.getMethod() + " HTTP method.");
+		String scope = requestParameters.get(OAuth2Parameters.SCOPE);
+		String state = requestParameters.get(OAuth2Parameters.STATE);
+		GrantType grantType = GrantType.Of(requestParameters.get(OAuth2Parameters.GRANT_TYPE));
+		String code = requestParameters.get(OAuth2Parameters.CODE);
+		String redirectUri = requestParameters.get(OAuth2Parameters.REDIRECT_URI);
+		
+		if (grantType == null) {
+			return toError(OAuth2Error.INVALID_REQUEST, "No '" + OAuth2Parameters.GRANT_TYPE + "' provided.", null, state);
 		}
 		
-		String authorization = getOAuthAuthorizationParameters(request);
-		if (authorization == null) {
-			throw new OAuthAuthorizationException("HTTP " + HTTP_HEADER_AUTHORIZATION + " header required.");
+		if (logger.isInfoEnabled()) {
+			logger.info("Grant Type received: " + grantType.toString());
 		}
 		
-		String[] authSplit = authorization.split(":");
-		String secretKey = authSplit[0];
-		String secretPassword = authSplit[1];
+		if (grantType != GrantType.AUTHORIZATION_CODE) {
+			return toError(OAuth2Error.INVALID_REQUEST, GrantType.AUTHORIZATION_CODE + " required.", null, state);
+		}
 		
-		return oauthMessage;
+		if (code == null || code.isEmpty()) {
+			return toError(OAuth2Error.INVALID_REQUEST, OAuth2Parameters.CODE + " required.", null, state);
+		}
+		
+		if (redirectUri == null || redirectUri.isEmpty()) {
+			return toError(OAuth2Error.INVALID_REQUEST, OAuth2Parameters.REDIRECT_URI + " required.", null, state);
+		}
+		
+		if (!OAuth2Util.isRedirectEndpointUriValid(redirectUri)) {
+			return toError(OAuth2Error.INVALID_REQUEST, OAuth2Parameters.REDIRECT_URI + " isn't valid.", null, state);
+		}
+ 		
+		try {
+			AccessToken accessToken = getOauthTokenManager().createAccessToken(credential.getClientId(), code, redirectUri, scope, state);
+			OAuth2Parameters parameters = new OAuth2Parameters();
+			parameters.setAccessToken(accessToken.getAccessToken());
+			parameters.setTokenType(accessToken.getTokenType().toString());
+			parameters.setExpiresIn(accessToken.getExpiresIn());
+			parameters.setRefreshToken(accessToken.getRefreshToken());
+			parameters.setScope(processScope(scope));
+			
+			return parameters;
+		} catch (OAuthException e) {
+			// TODO Auto-generated catch block
+			logger.error(e.getLocalizedMessage(), e);
+			return toError(OAuth2Error.UNAUTHORIZED_CLIENT, e.getLocalizedMessage(), null, state);
+		}
+	}
+	
+	protected String processScope(String scope) {
+		//TODO: Override this method if you want to process scope.
+		return scope;
 	}
 }

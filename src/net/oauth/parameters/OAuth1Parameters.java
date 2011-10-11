@@ -16,8 +16,6 @@
  */
 package net.oauth.parameters;
 
-import java.io.Serializable;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -25,13 +23,12 @@ import java.util.Map;
  * @since 30 March 2010
  *
  */
-public class OAuthParameters implements Serializable {
+public class OAuth1Parameters extends OAuthParameters {
 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -6032618043340507250L;
-	
+	private static final long serialVersionUID = 2022829899431411819L;
 	public static final String OAUTH_BODY_HASH = "oauth_body_hash";
 	public static final String OAUTH_CALLBACK = "oauth_callback";
 	public static final String OAUTH_CALLBACK_CONFIRMED = "oauth_callback_confirmed";
@@ -46,36 +43,66 @@ public class OAuthParameters implements Serializable {
 	public static final String OAUTH_VERSION = "oauth_version";
 	public static final String OAUTH_REALM = "realm";
 
-	private Map<String, String> parameterMap;
 		
 	/**
 	 * 
 	 */
-	public OAuthParameters() {
+	public OAuth1Parameters() {
 		// TODO Auto-generated constructor stub
-		parameterMap = new LinkedHashMap<String, String>();
+		super();
 	}
 	
-	public OAuthParameters(Map<String, String> parameters) {
+	public OAuth1Parameters(Map<String, String> parameters) {
 		this();
 		
 		if (parameters != null) {
 			for (String parameter : parameters.keySet()) {
 				String value = parameters.get(parameter);
 				if (parameter.startsWith("oauth_") || OAUTH_REALM.equals(parameter)) {
-					setOAuthParameter(parameter, value);
+					put(parameter, value);
 				}
 			}
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see net.oauth.parameters.OAuthParameters#put(java.lang.String, java.lang.String)
+	 */
+	@Override
+	protected void put(String key, String value) {
+		// TODO Auto-generated method stub
+		if (key != null && !key.isEmpty() && value != null) {
+			if (!key.startsWith("oauth_") && !OAUTH_REALM.equals(key)) {
+				throw new IllegalArgumentException("OAuth parameters must start with \"oauth_\" or is \"" + OAUTH_REALM + "\".");
+			}
+			
+			super.put(key, value);
+		}
+	}
+	
+	/**
+	 * 
+	 * @return oauthBodyHash
+	 */
+	public String getOAuthBodyHash() {
+		return get(OAUTH_BODY_HASH);
+	}
+
 	/**
 	 * @param oauthBodyHash the oauthBodyHash to set
 	 */
 	public void setOAuthBodyHash(String oauthBodyHash) {
 		if (oauthBodyHash != null) {
-			setOAuthParameter(OAUTH_BODY_HASH, oauthBodyHash);
+			put(OAUTH_BODY_HASH, oauthBodyHash);
 		}
+	}
+	
+	/**
+	 * 
+	 * @return oauthCallback
+	 */
+	public String getOAuthCallback() {
+		return get(OAUTH_CALLBACK);
 	}
 	
 	/**
@@ -83,17 +110,31 @@ public class OAuthParameters implements Serializable {
 	 */
 	public void setOAuthCallback(String oauthCallback) {
 		if (oauthCallback != null) {
-			setOAuthParameter(OAUTH_CALLBACK, oauthCallback);
+			put(OAUTH_CALLBACK, oauthCallback);
 		}
+	}
+	
+	/**
+	 * 
+	 * @return oauthCallbackConfirmed
+	 */
+	public boolean getOAuthCallbackConfirmed() {
+		return Boolean.valueOf(get(OAUTH_CALLBACK_CONFIRMED));
 	}
 	
 	/**
 	 * @param oauthCallbackConfirmed the oauthCallbackConfirmed to set
 	 */
-	public void setOAuthCallbackConfirmed(String oauthCallbackConfirmed) {
-		if (oauthCallbackConfirmed != null) {
-			setOAuthParameter(OAUTH_CALLBACK_CONFIRMED, oauthCallbackConfirmed);
-		}
+	public void setOAuthCallbackConfirmed(boolean oauthCallbackConfirmed) {
+		put(OAUTH_CALLBACK_CONFIRMED, Boolean.toString(oauthCallbackConfirmed));
+	}
+	
+	/**
+	 * 
+	 * @return oauthConsumerKey
+	 */
+	public String getOAuthConsumerKey() {
+		return get(OAUTH_CONSUMER_KEY);
 	}
 	
 	/**
@@ -101,8 +142,16 @@ public class OAuthParameters implements Serializable {
 	 */
 	public void setOAuthConsumerKey(String oauthConsumerKey) {
 		if (oauthConsumerKey != null) {
-			setOAuthParameter(OAUTH_CONSUMER_KEY, oauthConsumerKey);
+			put(OAUTH_CONSUMER_KEY, oauthConsumerKey);
 		}
+	}
+	
+	/**
+	 * 
+	 * @return oauthNonce;
+	 */
+	public String getOAuthNonce() {
+		return get(OAUTH_NONCE);
 	}
 	
 	/**
@@ -110,8 +159,16 @@ public class OAuthParameters implements Serializable {
 	 */
 	public void setOAuthNonce(String oauthNonce) {
 		if (oauthNonce != null) {
-			setOAuthParameter(OAUTH_NONCE, oauthNonce);
+			put(OAUTH_NONCE, oauthNonce);
 		}
+	}
+	
+	/**
+	 * 
+	 * @return oauthRealm
+	 */
+	public String getOAuthRealm() {
+		return get(OAUTH_REALM);
 	}
 	
 	/**
@@ -119,8 +176,16 @@ public class OAuthParameters implements Serializable {
 	 */
 	public void setOAuthRealm(String realm) {
 		if (realm != null && !realm.isEmpty()) {
-			setOAuthParameter(OAUTH_REALM, realm);
+			put(OAUTH_REALM, realm);
 		}
+	}
+	
+	/**
+	 * 
+	 * @return oauthSignature;
+	 */
+	public String getOAuthSignature() {
+		return get(OAUTH_SIGNATURE);
 	}
 	
 	/**
@@ -128,8 +193,16 @@ public class OAuthParameters implements Serializable {
 	 */
 	public void setOAuthSignature(String oauthSignature) {
 		if (oauthSignature != null) {
-			setOAuthParameter(OAUTH_SIGNATURE, oauthSignature);
+			put(OAUTH_SIGNATURE, oauthSignature);
 		}
+	}
+	
+	/**
+	 * 
+	 * @return oauthSignatureMethod
+	 */
+	public String getOAuthSignatureMethod() {
+		return get(OAUTH_SIGNATURE_METHOD);
 	}
 	
 	/**
@@ -137,8 +210,16 @@ public class OAuthParameters implements Serializable {
 	 */
 	public void setOAuthSignatureMethod(String oauthSignatureMethod) {
 		if (oauthSignatureMethod != null) {
-			setOAuthParameter(OAUTH_SIGNATURE_METHOD, oauthSignatureMethod);
+			put(OAUTH_SIGNATURE_METHOD, oauthSignatureMethod);
 		}
+	}
+	
+	/**
+	 * 
+	 * @return oauthTimestamp
+	 */
+	public String getOAuthTimestamp() {
+		return get(OAUTH_TIMESTAMP);
 	}
 	
 	/**
@@ -146,8 +227,16 @@ public class OAuthParameters implements Serializable {
 	 */
 	public void setOAuthTimestamp(String oauthTimestamp) {
 		if (oauthTimestamp != null) {
-			setOAuthParameter(OAUTH_TIMESTAMP, oauthTimestamp);
+			put(OAUTH_TIMESTAMP, oauthTimestamp);
 		}
+	}
+	
+	/**
+	 * 
+	 * @return oauthToken
+	 */
+	public String getOAuthToken() {
+		return get(OAUTH_TOKEN);
 	}
 	
 	/**
@@ -155,8 +244,16 @@ public class OAuthParameters implements Serializable {
 	 */
 	public void setOAuthToken(String oauthToken) {
 		if (oauthToken != null) {
-			setOAuthParameter(OAUTH_TOKEN, oauthToken);
+			put(OAUTH_TOKEN, oauthToken);
 		}
+	}
+	
+	/**
+	 * 
+	 * @return oauthTokenSecret
+	 */
+	public String getOAuthTokenSecret() {
+		return get(OAUTH_TOKEN_SECRET);
 	}
 	
 	/**
@@ -164,8 +261,16 @@ public class OAuthParameters implements Serializable {
 	 */
 	public void setOAuthTokenSecret(String oauthTokenSecret) {
 		if (oauthTokenSecret != null) {
-			setOAuthParameter(OAUTH_TOKEN_SECRET, oauthTokenSecret);
+			put(OAUTH_TOKEN_SECRET, oauthTokenSecret);
 		}
+	}
+	
+	/**
+	 * 
+	 * @return oauthVerifier
+	 */
+	public String getOAuthVerifier() {
+		return get(OAUTH_VERIFIER);
 	}
 	
 	/**
@@ -173,8 +278,16 @@ public class OAuthParameters implements Serializable {
 	 */
 	public void setOAuthVerifier(String oauthVerifier) {
 		if (oauthVerifier != null) {
-			setOAuthParameter(OAUTH_VERIFIER, oauthVerifier);
+			put(OAUTH_VERIFIER, oauthVerifier);
 		}
+	}
+	
+	/**
+	 * 
+	 * @return oauthVersion
+	 */
+	public String getOAuthVersion() {
+		return get(OAUTH_VERSION);
 	}
 	
 	/**
@@ -182,33 +295,7 @@ public class OAuthParameters implements Serializable {
 	 */
 	public void setOAuthVersion(String oauthVersion) {
 		if (oauthVersion != null) {
-			setOAuthParameter(OAUTH_VERSION, oauthVersion);
+			put(OAUTH_VERSION, oauthVersion);
 		}
-	}
-	
-	public final Map<String, String> getOAuthParameters() {
-		return parameterMap;
-	}
-	
-	public String getValue(String key) {
-		return parameterMap.get(key);
-	}
-	
-	private void setOAuthParameter(String key, String value) {
-		if (key != null && !key.isEmpty() && value != null) {
-			if (!key.startsWith("oauth_") && !OAUTH_REALM.equals(key)) {
-				throw new IllegalArgumentException("OAuth parameters must start with \"oauth_\" or is \"" + OAUTH_REALM + "\".");
-			}
-			
-			parameterMap.put(key, value);
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "OAuthParameters [parameterMap=" + parameterMap + "]";
 	}
 }
