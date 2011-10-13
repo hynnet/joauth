@@ -9,8 +9,6 @@ import java.util.Map.Entry;
 
 import net.oauth.parameters.OAuthParameters;
 
-import org.apache.log4j.Logger;
-
 /**
  * @author Buhake Sindi
  * @since 06 October 2011
@@ -18,30 +16,19 @@ import org.apache.log4j.Logger;
  */
 public class UrlEncodedParameterFormatter extends AbstractParameterFormatter {
 	
-	private static final Logger logger = Logger.getLogger(UrlEncodedParameterFormatter.class);
-	private String charset;
-	
 	/**
 	 * 
 	 */
 	public UrlEncodedParameterFormatter() {
-		this("UTF-8");
-		// TODO Auto-generated constructor stub
-	}
-	
-	/**
-	 * @param charset
-	 */
-	public UrlEncodedParameterFormatter(String charset) {
 		super("application/x-www-form-urlencoded");
-		this.charset = charset;
+		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.response.formatter.ParameterFormatter#format(net.oauth.parameters.OAuthParameters)
+	 * @see com.neurologic.oauth.service.response.formatter.ParameterFormatter#format(net.oauth.parameters.OAuthParameters, java.lang.String)
 	 */
 	@Override
-	public String format(OAuthParameters parameters) {
+	public String format(OAuthParameters parameters, String charset) {
 		// TODO Auto-generated method stub
 		StringBuilder sb = new StringBuilder();
 		try {

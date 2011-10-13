@@ -13,5 +13,5 @@ import net.oauth.parameters.OAuthParameters;
 public interface ParameterFormatter {
 
 	public String getContentType();
-	public String format(OAuthParameters parameters);
+	public String format(OAuthParameters parameters, String charset);
 }

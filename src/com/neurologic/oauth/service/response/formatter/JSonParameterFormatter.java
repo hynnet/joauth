@@ -5,11 +5,10 @@ package com.neurologic.oauth.service.response.formatter;
 
 import java.util.Map.Entry;
 
-import org.apache.log4j.Logger;
+import net.oauth.parameters.OAuthParameters;
+
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import net.oauth.parameters.OAuthParameters;
 
 /**
  * @author Buhake Sindi
@@ -17,8 +16,6 @@ import net.oauth.parameters.OAuthParameters;
  *
  */
 public class JSonParameterFormatter extends AbstractParameterFormatter {
-	
-	private static final Logger logger = Logger.getLogger(JSonParameterFormatter.class);
 
 	/**
 	 * 
@@ -32,7 +29,7 @@ public class JSonParameterFormatter extends AbstractParameterFormatter {
 	 * @see com.neurologic.oauth.service.response.formatter.ParameterFormatter#format(net.oauth.parameters.OAuthParameters)
 	 */
 	@Override
-	public String format(OAuthParameters parameters) {
+	public String format(OAuthParameters parameters, String charset) {
 		// TODO Auto-generated method stub
 		JSONObject json = new JSONObject();
 		try {

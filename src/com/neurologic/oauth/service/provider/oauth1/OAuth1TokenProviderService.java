@@ -31,7 +31,7 @@ import com.neurologic.oauth.service.provider.manager.OAuth1TokenManager;
 import com.neurologic.oauth.service.request.authentication.HttpAuthorizationChallenger;
 import com.neurologic.oauth.service.request.authentication.OAuth1HttpAuthorizationChallenger;
 import com.neurologic.oauth.service.response.Result;
-import com.neurologic.oauth.service.response.formatter.UrlEncodedParameterFormatter;
+import com.neurologic.oauth.service.response.formatter.NoFormatParameterFormatter;
 import com.neurologic.oauth.service.response.impl.OAuthMessageResult;
 
 /**
@@ -56,7 +56,7 @@ public abstract class OAuth1TokenProviderService extends OAuthTokenProviderServi
 	@Override
 	protected Result execute(HttpServletRequest request) {
 		// TODO Auto-generated method stub
-		OAuthMessageResult result = new OAuthMessageResult(new UrlEncodedParameterFormatter());
+		OAuthMessageResult result = new OAuthMessageResult(new NoFormatParameterFormatter("application/x-www-form-urlencoded"));
 		OAuthParameters parameters = null;
 		int statusCode;
 		

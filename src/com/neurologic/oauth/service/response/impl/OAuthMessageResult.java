@@ -68,7 +68,7 @@ public class OAuthMessageResult extends AbstractOAuthResult {
 		response.setStatus(statusCode);
 		//Write...
 		if (getAuthParameters() != null) {
-			response.getWriter().write(formatter.format(getAuthParameters()));
+			response.getWriter().write(formatter.format(getAuthParameters(), "UTF-8"));
 		}
 	}
 }
