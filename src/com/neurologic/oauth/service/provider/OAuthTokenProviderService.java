@@ -39,11 +39,11 @@ public abstract class OAuthTokenProviderService<TM extends OAuthTokenManager, SP
 	 */
 	protected void validateRequest(HttpServletRequest request) throws OAuthException {
 		if (!isSecure(request, true)) {
-			throw new SecureChannelException("This channel, " + request.getScheme() + " is unsecure.");
+			throw new SecureChannelException("This channel, '" + request.getScheme() + "' is unsecure.");
 		}
 		
 		if (!"POST".equals(request.getMethod())) {
-			throw new RequestMethodException("Cannot execute request with " + request.getMethod() + " HTTP method.");
+			throw new RequestMethodException("Cannot execute request with '" + request.getMethod() + "' HTTP method.");
 		}
 		
 		if (request.getHeader(HTTP_HEADER_AUTHORIZATION) == null) {
