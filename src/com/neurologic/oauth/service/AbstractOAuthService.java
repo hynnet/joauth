@@ -3,7 +3,6 @@
  */
 package com.neurologic.oauth.service;
 
-import javax.security.cert.X509Certificate;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
@@ -44,19 +43,29 @@ public abstract class AbstractOAuthService implements OAuthService {
 	/**
 	 * Checks if the Servlet Request was done through a secure channel.
 	 * @param request
-	 * @param forceCheck if <code>true</code>, then checks if https scheme and X509 certificates exists in the 
-	 *        {@link HttpServletRequest}.
 	 * @return
 	 */
-	protected boolean isSecure(HttpServletRequest request, boolean forceCheck) {
-		if (!forceCheck) {
-			return request.isSecure();
-		}
-		
-		X509Certificate[] certs = (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
-		return ("https".equals(request.getScheme()) && certs != null);
+	protected boolean isSecure(HttpServletRequest request) {
+		return request.isSecure();
 	}
 	
+//	/**
+//	 * Checks if the Servlet Request was done through a secure channel.
+//	 * @param request
+//	 * @param forceCheck if <code>true</code>, then checks if https scheme and X509 certificates exists in the 
+//	 *        {@link HttpServletRequest}.
+//	 * @return
+//	 */
+//	protected boolean isSecure(HttpServletRequest request, boolean forceCheck) {
+//		if (!forceCheck) {
+//			return request.isSecure();
+//		}
+//		
+//		X509Certificate[] certs = (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
+////		X509Certificate[] certs = (X509Certificate[]) request.getAttribute("javax.net.ssl.peer_certificates");
+//		return ("https".equals(request.getScheme()) && certs != null);
+//	}
+//	
 	/* (non-Javadoc)
 	 * @see com.neurologic.oauth.service.Service#execute(javax.servlet.ServletRequest, javax.servlet.ServletResponse)
 	 */
