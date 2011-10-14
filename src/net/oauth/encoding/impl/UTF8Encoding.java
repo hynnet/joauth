@@ -49,16 +49,14 @@ public class UTF8Encoding implements OAuthEncoding {
 					char char2 = encodedData.charAt(i + 2);
 					if ('2' == char1 && 'A' == char2) {
 						sb.append("*");
-						i += 2;
 					} else if ('2' == char1 && '0' == char2) {
 						sb.append("+");
-						i += 2;
 					} else if ('7' == char1 && 'E' == char2) {
 						sb.append("~");
-						i += 2;
 					} else {
 						sb.append(percent).append(char1).append(char2);
 					}
+					i += 2;
 				} else {
 					sb.append(percent);
 				}

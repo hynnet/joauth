@@ -110,13 +110,18 @@ public class OAuth1AuthorizationRequestProviderService extends OAuthRedirectProv
 		}
 		
 		int questionMarkPos = redirectPath.indexOf('?');
-		Map<String, String> parameterMap = OAuth1Util.parseQueryString(redirectPath.substring(questionMarkPos + 1));
-		if (parameterMap == null) {
-			parameterMap = new LinkedHashMap<String, String>();
+		Map<String, String> parameterMap = new LinkedHashMap<String, String>();
+		if (questionMarkPos > 0) {
+			parameterMap.putAll(OAuth1Util.parseQueryString(redirectPath.substring(questionMarkPos + 1)));
 		}
 		
-		parameterMap.putAll(parameters.getOAuthParameters());
-		redirectPath = redirectPath.substring(0, questionMarkPos + 1) + OAuth1Util.getQueryString(parameterMap, new QueryKeyValuePair());
+		if (parameters != null) {
+			parameterMap.putAll(parameters.getOAuthParameters());
+		}
+		
+		if (questionMarkPos > 1) {
+			redirectPath = redirectPath.substring(0, questionMarkPos + 1) + OAuth1Util.getQueryString(parameterMap, new QueryKeyValuePair());
+		}
 		if (logger.isInfoEnabled()) {
 			logger.info(this.getClass().getName() + ": Redirecting to '" + redirectPath + "'.");
 		}

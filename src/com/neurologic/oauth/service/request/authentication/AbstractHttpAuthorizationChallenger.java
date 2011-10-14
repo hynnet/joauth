@@ -38,13 +38,13 @@ public abstract class AbstractHttpAuthorizationChallenger<T> implements HttpAuth
 			logger.info("Authorization: " + authorizationString);
 		}
 		
-		String authSchemeFound = authorizationString.substring(0, authScheme.length() + 1);
-		boolean validSchemeFound = (caseSensitive ? authSchemeFound.equals(authScheme) : authSchemeFound.equalsIgnoreCase(authScheme));
+		String authSchemeFound = authorizationString.substring(0, authScheme.length());
+		boolean validSchemeFound = (caseSensitive ? authScheme.equals(authSchemeFound) : authScheme.equalsIgnoreCase(authSchemeFound));
 		if (!validSchemeFound) {
 			throw new OAuthAuthorizationException("HTTP Authorization auth-scheme is invalid.");
 		}
 		
-		return parseAndGenerateData(authorizationString.substring(authScheme.length()));
+		return parseAndGenerateData(authorizationString.substring(authScheme.length() + 1));
 	}
 	
 	protected abstract T parseAndGenerateData(String authorizationString) throws OAuthAuthorizationException;

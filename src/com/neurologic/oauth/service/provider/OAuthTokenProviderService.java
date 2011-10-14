@@ -38,7 +38,7 @@ public abstract class OAuthTokenProviderService<TM extends OAuthTokenManager, SP
 	 * @throws OAuthException, if the check fails. We need the exception message.
 	 */
 	protected void validateRequest(HttpServletRequest request) throws OAuthException {
-		if (!isSecure(request, true)) {
+		if (!isSecure(request)) {
 			throw new SecureChannelException("This channel, '" + request.getScheme() + "' is unsecure.");
 		}
 		
