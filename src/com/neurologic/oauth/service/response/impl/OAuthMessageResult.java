@@ -9,8 +9,8 @@ import java.util.Map.Entry;
 import javax.servlet.http.HttpServletResponse;
 
 import com.neurologic.oauth.service.response.AbstractOAuthResult;
+import com.neurologic.oauth.service.response.Message;
 import com.neurologic.oauth.service.response.ServiceContext;
-import com.neurologic.oauth.service.response.formatter.ParameterFormatter;
 
 /**
  * @author Buhake Sindi
@@ -20,14 +20,31 @@ import com.neurologic.oauth.service.response.formatter.ParameterFormatter;
 public class OAuthMessageResult extends AbstractOAuthResult {
 
 	private int statusCode;
-	private ParameterFormatter formatter;
+	private Message message;
+	
+	/**
+	 * 
+	 */
+	public OAuthMessageResult() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
 
 	/**
-	 * @param formatter
+	 * @param statusCode
 	 */
-	public OAuthMessageResult(ParameterFormatter formatter) {
+	public OAuthMessageResult(int statusCode) {
+		this(statusCode, null);
+	}
+
+	/**
+	 * @param statusCode
+	 * @param message
+	 */
+	public OAuthMessageResult(int statusCode, Message message) {
 		super();
-		this.formatter = formatter;
+		setStatusCode(statusCode);
+		setMessage(message);
 	}
 
 	/**
@@ -37,16 +54,19 @@ public class OAuthMessageResult extends AbstractOAuthResult {
 		this.statusCode = statusCode;
 	}
 
+	/**
+	 * @param message the message to set
+	 */
+	public void setMessage(Message message) {
+		this.message = message;
+	}
+
 	/* (non-Javadoc)
 	 * @see com.neurologic.oauth.service.response.Result#execute(com.neurologic.oauth.service.response.ServiceContext)
 	 */
 	@Override
 	public void execute(ServiceContext context) throws IOException {
 		// TODO Auto-generated method stub
-		if (formatter == null) {
-			throw new IOException("A formatter is required.");
-		}
-		
 		if (context == null) {
 			throw new IOException("A Service context is required.");
 		}
@@ -61,14 +81,17 @@ public class OAuthMessageResult extends AbstractOAuthResult {
 			response.addHeader(entry.getKey(), entry.getValue());
 		}
 		
-		//Write content-type
-		response.addHeader("Content-Type", formatter.getContentType());
-		
 		//Set status
 		response.setStatus(statusCode);
-		//Write...
-		if (getAuthParameters() != null) {
-			response.getWriter().write(formatter.format(getAuthParameters(), "UTF-8"));
+		
+		if (message != null) {
+			//Set Content-Type
+			response.addHeader("Content-Type", message.getContentType());
+			//Set Content-Length
+			response.addHeader("Content-Length", String.valueOf(message.getContentLength()));
+			
+			//Write...
+			message.writeTo(response.getOutputStream());
 		}
 	}
 }

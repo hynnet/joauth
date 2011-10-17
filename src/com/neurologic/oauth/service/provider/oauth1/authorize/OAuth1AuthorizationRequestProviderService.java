@@ -3,8 +3,7 @@
  */
 package com.neurologic.oauth.service.provider.oauth1.authorize;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -12,9 +11,7 @@ import net.oauth.exception.OAuthException;
 import net.oauth.parameters.OAuth1Parameters;
 import net.oauth.parameters.OAuthErrorParameter;
 import net.oauth.parameters.OAuthParameters;
-import net.oauth.parameters.QueryKeyValuePair;
 import net.oauth.token.oauth1.AuthorizedToken;
-import net.oauth.util.OAuth1Util;
 
 import com.neurologic.exception.OAuthAuthorizationException;
 import com.neurologic.exception.OAuthRejectedException;
@@ -109,24 +106,19 @@ public class OAuth1AuthorizationRequestProviderService extends OAuthRedirectProv
 			contextRelative = true;
 		}
 		
-		int questionMarkPos = redirectPath.indexOf('?');
-		Map<String, String> parameterMap = new LinkedHashMap<String, String>();
-		if (questionMarkPos > 0) {
-			parameterMap.putAll(OAuth1Util.parseQueryString(redirectPath.substring(questionMarkPos + 1)));
-		}
 		
-		if (parameters != null) {
-			parameterMap.putAll(parameters.getOAuthParameters());
-		}
-		
-		if (questionMarkPos > 1) {
-			redirectPath = redirectPath.substring(0, questionMarkPos + 1) + OAuth1Util.getQueryString(parameterMap, new QueryKeyValuePair());
-		}
 		if (logger.isInfoEnabled()) {
 			logger.info(this.getClass().getName() + ": Redirecting to '" + redirectPath + "'.");
 		}
 		
-		return new OAuthRedirectResult(redirectPath, contextRelative);
+		OAuthRedirectResult oauthRedirect = new OAuthRedirectResult(redirectPath, contextRelative);
+		if (parameters != null) {
+			for (Entry<String, String> entry : parameters.getOAuthParameters().entrySet()) {
+				oauthRedirect.addParameter(entry.getKey(), entry.getValue());
+			}
+		}
+		
+		return oauthRedirect ;
 	}
 	
 	private OAuth1Parameters authorizeToken(String requestToken, String userId) throws OAuthException {
