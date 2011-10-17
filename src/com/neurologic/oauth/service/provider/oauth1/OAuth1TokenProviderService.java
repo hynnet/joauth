@@ -16,13 +16,13 @@
  */
 package com.neurologic.oauth.service.provider.oauth1;
 
+import java.io.UnsupportedEncodingException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.oauth.exception.OAuthException;
 import net.oauth.parameters.OAuth1Parameters;
-import net.oauth.parameters.OAuthErrorParameter;
-import net.oauth.parameters.OAuthParameters;
 import net.oauth.provider.OAuth1ServiceProvider;
 
 import com.neurologic.exception.OAuthAuthorizationException;
@@ -30,9 +30,11 @@ import com.neurologic.oauth.service.provider.OAuthTokenProviderService;
 import com.neurologic.oauth.service.provider.manager.OAuth1TokenManager;
 import com.neurologic.oauth.service.request.authentication.HttpAuthorizationChallenger;
 import com.neurologic.oauth.service.request.authentication.OAuth1HttpAuthorizationChallenger;
+import com.neurologic.oauth.service.response.Message;
 import com.neurologic.oauth.service.response.Result;
-import com.neurologic.oauth.service.response.formatter.NoFormatParameterFormatter;
 import com.neurologic.oauth.service.response.impl.OAuthMessageResult;
+import com.neurologic.oauth.service.response.impl.StringMessage;
+import com.neurologic.oauth.service.response.impl.UrlEncodedMessage;
 
 /**
  * @author Buhake Sindi
@@ -41,13 +43,17 @@ import com.neurologic.oauth.service.response.impl.OAuthMessageResult;
  */
 public abstract class OAuth1TokenProviderService extends OAuthTokenProviderService<OAuth1TokenManager, OAuth1ServiceProvider> {
 	
-	private OAuthErrorParameter packException(OAuthException exception) {
-		OAuthErrorParameter parameter = new OAuthErrorParameter();
+	private Message packException(OAuthException exception) {
 		if (exception != null) {
-			parameter.setError(exception.getClass().getName() + ": " + exception.getLocalizedMessage());
+			try {
+				return new StringMessage(exception.getClass().getName() + ": " + exception.getLocalizedMessage(), "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				logger.error("Unsupported Charset", e);
+			}
 		}
 		
-		return parameter;
+		return null;
 	}
 	
 	/* (non-Javadoc)
@@ -56,16 +62,17 @@ public abstract class OAuth1TokenProviderService extends OAuthTokenProviderServi
 	@Override
 	protected Result execute(HttpServletRequest request) {
 		// TODO Auto-generated method stub
-		OAuthMessageResult result = new OAuthMessageResult(new NoFormatParameterFormatter("application/x-www-form-urlencoded"));
-		OAuthParameters parameters = null;
-		int statusCode;
+		OAuthMessageResult result = new OAuthMessageResult();
+		Message message = null;
+		int statusCode = -1;
 		
 		try {
 			validateRequest(request);
 			
 			//Let's get the Authorization parameters
 			HttpAuthorizationChallenger<OAuth1Parameters> challenger = new OAuth1HttpAuthorizationChallenger();
-			parameters = executeInternal(request, challenger.processChallenge(request.getHeader(HTTP_HEADER_AUTHORIZATION)));
+			OAuth1Parameters parameters = executeInternal(request, challenger.processChallenge(request.getHeader(HTTP_HEADER_AUTHORIZATION)));
+			message = new UrlEncodedMessage(parameters.getOAuthParameters(), "UTF-8");
 			statusCode = HttpServletResponse.SC_OK;
 		} catch (OAuthException e) {
 			// TODO Auto-generated catch block
@@ -75,10 +82,13 @@ public abstract class OAuth1TokenProviderService extends OAuthTokenProviderServi
 				statusCode = HttpServletResponse.SC_UNAUTHORIZED;
 			}
 			
-			parameters = packException(e);
+			message = packException(e);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			logger.error("Unsupported charset", e);
 		}
 		
-		result.setOAuthParameters(parameters);
+		result.setMessage(message);
 		result.setStatusCode(statusCode);
 		return result;
 	}

@@ -3,7 +3,6 @@
  */
 package com.neurologic.oauth.service.response;
 
-import net.oauth.parameters.OAuthParameters;
 
 /**
  * @author Buhake Sindi
@@ -13,5 +12,4 @@ import net.oauth.parameters.OAuthParameters;
 public interface OAuthResult extends Result {
 
 	public void addHeader(String key, String value);
-	public void setOAuthParameters(OAuthParameters parameters);
 }

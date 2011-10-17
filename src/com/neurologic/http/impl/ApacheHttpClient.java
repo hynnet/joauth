@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import net.oauth.parameters.QueryKeyValuePair;
 import net.oauth.util.OAuth1Util;
@@ -163,8 +164,8 @@ public class ApacheHttpClient extends AbstractHttpClient {
 			
 			List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 			synchronized (parameterMap) {
-				for (String key : parameterMap.keySet()) {
-					nvps.add(new BasicNameValuePair(key, parameterMap.get(key)));
+				for (Entry<String, String> entry : parameterMap.entrySet()) {
+					nvps.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
 				}
 			}
 

@@ -17,6 +17,7 @@
 package com.neurologic.oauth.service.provider.oauth2;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -32,6 +33,8 @@ import net.oauth.parameters.OAuth2Parameters;
 import net.oauth.parameters.OAuthParameters;
 import net.oauth.provider.OAuth2ServiceProvider;
 
+import org.json.JSONException;
+
 import com.neurologic.exception.OAuthAuthorizationException;
 import com.neurologic.oauth.service.provider.OAuthTokenProviderService;
 import com.neurologic.oauth.service.provider.manager.OAuth2TokenManager;
@@ -39,7 +42,7 @@ import com.neurologic.oauth.service.request.authentication.HttpAuthorizationChal
 import com.neurologic.oauth.service.request.authentication.HttpBasicAuthorizationChallenger;
 import com.neurologic.oauth.service.response.Result;
 import com.neurologic.oauth.service.response.authenticate.WWWAuthenticateResponse;
-import com.neurologic.oauth.service.response.formatter.JSonParameterFormatter;
+import com.neurologic.oauth.service.response.impl.JsonEncodedMessage;
 import com.neurologic.oauth.service.response.impl.OAuthMessageResult;
 
 /**
@@ -95,7 +98,7 @@ public abstract class OAuth2TokenProviderService extends OAuthTokenProviderServi
 	@Override
 	protected Result execute(HttpServletRequest request) {
 		// TODO Auto-generated method stub
-		OAuthMessageResult result = new OAuthMessageResult(new JSonParameterFormatter());
+		OAuthMessageResult result = new OAuthMessageResult();
 		OAuthParameters parameters = null;
 		int statusCode;
 		
@@ -130,10 +133,19 @@ public abstract class OAuth2TokenProviderService extends OAuthTokenProviderServi
 			parameters = toError(error, e.getMessage(), null, request.getParameter(OAuth2Parameters.STATE));
 		}
 		
+		result.setStatusCode(statusCode);
 		result.addHeader("Cache-Control", "no-store");
 		result.addHeader("Pragma", "no-cache");
-		result.setOAuthParameters(parameters);
-		result.setStatusCode(statusCode);
+		try {
+			result.setMessage(new JsonEncodedMessage(parameters.getOAuthParameters(), "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			logger.error("Unsupported charset", e);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			logger.error("JSONException", e);
+		}
+		
 		return result;
 	}
 	

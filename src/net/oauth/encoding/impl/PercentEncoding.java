@@ -20,7 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 
-import net.oauth.encoding.OAuthEncoding;
+import net.oauth.encoding.Encoding;
 
 import org.apache.log4j.Logger;
 
@@ -28,9 +28,9 @@ import org.apache.log4j.Logger;
  * @author Bienfait Sindi
  *
  */
-public class UTF8Encoding implements OAuthEncoding {
+public class PercentEncoding implements Encoding {
 	
-	private static final Logger logger = Logger.getLogger(UTF8Encoding.class);
+	private static final Logger logger = Logger.getLogger(PercentEncoding.class);
 
 	/* (non-Javadoc)
 	 * @see net.oauth.encoding.OAuthEncoding#decode(java.lang.String)

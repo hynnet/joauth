@@ -17,7 +17,10 @@ public class ConsumerKeyStoreData extends StoreData {
 	 */
 	private static final long serialVersionUID = -3395959358305392184L;
 	private String consumerKey;
-	private String consumerSecret; 
+	private String consumerSecret;
+	private String applicationName;
+	private String applicationDescription;
+	private String applicationUrl;
 	
 	{
 		super.setMaximumValidity(-1);
@@ -49,5 +52,54 @@ public class ConsumerKeyStoreData extends StoreData {
 	 */
 	public void setConsumerSecret(String consumerSecret) {
 		this.consumerSecret = consumerSecret;
+	}
+
+	/**
+	 * @return the applicationName
+	 */
+	public String getApplicationName() {
+		return applicationName;
+	}
+
+	/**
+	 * @param applicationName the applicationName to set
+	 */
+	public void setApplicationName(String applicationName) {
+		this.applicationName = applicationName;
+	}
+
+	/**
+	 * @return the applicationDescription
+	 */
+	public String getApplicationDescription() {
+		return applicationDescription;
+	}
+
+	/**
+	 * @param applicationDescription the applicationDescription to set
+	 */
+	public void setApplicationDescription(String applicationDescription) {
+		this.applicationDescription = applicationDescription;
+	}
+
+	/**
+	 * @return the applicationUrl
+	 */
+	public String getApplicationUrl() {
+		return applicationUrl;
+	}
+
+	/**
+	 * @param applicationUrl the applicationUrl to set
+	 */
+	public void setApplicationUrl(String applicationUrl) {
+		this.applicationUrl = applicationUrl;
+	}
+
+	/**
+	 * @return the serialversionuid
+	 */
+	public static long getSerialversionuid() {
+		return serialVersionUID;
 	}
 }

@@ -21,8 +21,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import net.oauth.encoding.OAuthEncoding;
-import net.oauth.encoding.impl.UTF8Encoding;
+import net.oauth.encoding.Encoding;
+import net.oauth.encoding.impl.PercentEncoding;
 import net.oauth.parameters.KeyValuePair;
 import net.oauth.parameters.OAuth1Parameters;
 
@@ -142,12 +142,12 @@ public class OAuth1Util {
 	}
 	
 	public static String encode(String s) {
-		OAuthEncoding encoding = new UTF8Encoding();
+		Encoding encoding = new PercentEncoding();
 		return encoding.encode(s);
 	}
 	
 	public static String decode(String s) {
-		OAuthEncoding encoding = new UTF8Encoding();
+		Encoding encoding = new PercentEncoding();
 		return encoding.decode(s);
 	}
 }

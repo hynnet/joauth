@@ -4,6 +4,12 @@
 package com.neurologic.oauth.service.response.impl;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -27,6 +33,7 @@ public class OAuthRedirectResult extends AbstractOAuthResult {
 	private String location;
 	private boolean contextRelative;
 	private boolean http10Compatible;
+	private Map<String, String[]> parameterMap;
 	
 	/**
 	 * Default constructor (in case of <code>OAuthRedirectResult.newInstance()</code>).
@@ -83,6 +90,29 @@ public class OAuthRedirectResult extends AbstractOAuthResult {
 	public void setHttp10Compatible(boolean http10Compatible) {
 		this.http10Compatible = http10Compatible;
 	}
+	
+	public OAuthRedirectResult addParameter(String key, String value) {
+		String[] values = null;
+		if (parameterMap == null) {
+			parameterMap = new LinkedHashMap<String, String[]>();
+		}
+		
+		if (parameterMap.containsKey(key)) {
+			values = parameterMap.get(key);
+			
+			List<String> valueList = new ArrayList<String>(Arrays.asList(values));
+			valueList.add(value);
+			values = valueList.toArray(new String[values.length]);
+		} else {
+			values = new String[] {value};
+		}
+		
+		if (values != null) {
+			parameterMap.put(key, values);
+		}
+		
+		return this;
+	}
 
 	/* (non-Javadoc)
 	 * @see com.neurologic.oauth.service.response.OAuthResult#execute(com.neurologic.oauth.service.response.ServiceContext)
@@ -97,13 +127,23 @@ public class OAuthRedirectResult extends AbstractOAuthResult {
 		HttpServletRequest request = (HttpServletRequest) context.getRequest();
 		HttpServletResponse response = (HttpServletResponse) context.getResponse();
 		
+		int parameterStartPos = location.indexOf('?', 1);
+		StringBuilder sb = new StringBuilder(location);
+		if (parameterStartPos == -1) {
+			sb.append("?");
+		} else {
+			sb.append("&");
+		}
+		sb.append(getParameterString());
+		
+		location = sb.toString();
 		if (location.startsWith("/") && contextRelative) {
 			RequestDispatcher dispatcher = request.getRequestDispatcher(location);
 			try {
 				dispatcher.forward(request, response);
 			} catch (ServletException e) {
 				// TODO Auto-generated catch block
-				logger.error("ServletException: ", e);
+				logger.error("ServletException:", e);
 				throw new IOException("ServletException", e);
 			}
 		} else {
@@ -115,5 +155,24 @@ public class OAuthRedirectResult extends AbstractOAuthResult {
 				response.setHeader(HTTP_LOCATION_HEADER, response.encodeRedirectURL(location));
 			}
 		}
+	}
+	
+	private String getParameterString() {
+		StringBuffer sb = new StringBuffer(location);
+		
+		if (parameterMap != null) {
+			for (Entry<String, String[]> entry : parameterMap.entrySet()) {
+				for (String value:  entry.getValue()) {
+					if (sb.length() > 0) {
+						sb.append("&");
+					}
+					
+					sb.append(entry.getKey()).append("=").append(value);
+					
+				}
+			}
+		}
+		
+		return sb.toString();
 	}
 }
