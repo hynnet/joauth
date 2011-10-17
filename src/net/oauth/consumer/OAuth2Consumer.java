@@ -244,10 +244,10 @@ public class OAuth2Consumer extends OAuthConsumer<OAuth2ServiceProvider> {
 				}
 			}
 			
-			if (client != null) {
+			/*if (client != null) {
 				client.close();
 				client = null;
-			}
+			}*/
 		}
 	}
 	
