@@ -146,11 +146,11 @@ public class OAuth1Consumer extends OAuthConsumer<OAuth1ServiceProvider> {
 			// TODO Auto-generated catch block
 			logger.error("Http Exception: ", e);
 			throw new OAuthException(e);
-		} finally {
+		} /*finally {
 			if (client != null) {
 				client.close();
 			}
-		}
+		}*/
 		
 		return requestToken;
 	}
@@ -253,11 +253,11 @@ public class OAuth1Consumer extends OAuthConsumer<OAuth1ServiceProvider> {
 		} catch (HttpException e) {
 			// TODO Auto-generated catch block
 			throw new OAuthException(e.getLocalizedMessage(), e);
-		} finally {
+		} /*finally {
 			if (client != null) {
 				client.close();
 			}
-		}
+		}*/
 		
 		return accessToken;
 	}
