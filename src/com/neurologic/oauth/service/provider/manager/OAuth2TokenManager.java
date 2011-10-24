@@ -5,7 +5,6 @@ package com.neurologic.oauth.service.provider.manager;
 
 import net.oauth.exception.OAuthException;
 import net.oauth.parameters.OAuth2Parameters;
-import net.oauth.token.oauth1.AuthorizedToken;
 import net.oauth.token.oauth2.AccessToken;
 import net.oauth.token.oauth2.AuthorizationToken;
 import net.oauth.util.OAuth2Util;
