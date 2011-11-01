@@ -13,13 +13,13 @@ import java.util.Map.Entry;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
 import com.neurologic.oauth.service.response.AbstractOAuthResult;
-import com.neurologic.oauth.service.response.ServiceContext;
 
 /**
  * @author Buhake Sindi
@@ -115,18 +115,11 @@ public class OAuthRedirectResult extends AbstractOAuthResult {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.response.OAuthResult#execute(com.neurologic.oauth.service.response.ServiceContext)
+	 * @see com.neurologic.oauth.service.response.Result#execute(javax.servlet.ServletRequest, javax.servlet.ServletResponse)
 	 */
 	@Override
-	public void execute(ServiceContext context) throws IOException {
+	public void execute(ServletRequest request, ServletResponse response) throws IOException {
 		// TODO Auto-generated method stub
-		if (context == null) {
-			throw new IOException("No Service context provided.");
-		}
-		
-		HttpServletRequest request = (HttpServletRequest) context.getRequest();
-		HttpServletResponse response = (HttpServletResponse) context.getResponse();
-		
 		int parameterStartPos = location.indexOf('?', 1);
 		StringBuilder sb = new StringBuilder(location);
 		if (parameterStartPos == -1) {
@@ -147,12 +140,14 @@ public class OAuthRedirectResult extends AbstractOAuthResult {
 				throw new IOException("ServletException", e);
 			}
 		} else {
+			HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+			
 			if (http10Compatible) {
 				//We must do a HTTP 302 Found.
-				response.sendRedirect(response.encodeRedirectURL(location));
+				httpServletResponse.sendRedirect(httpServletResponse.encodeRedirectURL(location));
 			} else {
-				response.setStatus(HttpServletResponse.SC_SEE_OTHER); //HTTP 303
-				response.setHeader(HTTP_LOCATION_HEADER, response.encodeRedirectURL(location));
+				httpServletResponse.setStatus(HttpServletResponse.SC_SEE_OTHER); //HTTP 303
+				httpServletResponse.setHeader(HTTP_LOCATION_HEADER, httpServletResponse.encodeRedirectURL(location));
 			}
 		}
 	}
