@@ -15,7 +15,6 @@ import com.neurologic.oauth.service.OAuthProviderService;
 import com.neurologic.oauth.service.provider.manager.OAuthTokenManager;
 import com.neurologic.oauth.service.provider.manager.OAuthTokenManagerRepository;
 import com.neurologic.oauth.service.response.Result;
-import com.neurologic.oauth.service.response.ServiceContext;
 
 /**
  * @author Buhake Sindi
@@ -50,7 +49,7 @@ public abstract class AbstractOAuthProviderService<TM extends OAuthTokenManager>
 		}
 		
 		try {
-			result.execute(new ServiceContext(request, response));
+			result.execute(request, response);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			throw new Exception("Error executing result '" + result.getClass().getName() + "'. Aborting...");
