@@ -144,12 +144,16 @@ public class OAuthServlet extends HttpServlet {
 	}
 	
 	private ModuleConfig initializeModuleConfig(String oauthConfigFile) throws Exception {
-		ModuleConfig moduleConfig = getModuleConfig();
-		if (moduleConfig == null) {
-			ModuleConfigFactory factory = new ModuleConfigFactory();
-			moduleConfig = factory.createModuleConfig(getServletContext().getResourceAsStream(oauthConfigFile));
-			getServletContext().setAttribute(Globals.MODULE_KEY, moduleConfig);
-		}
+//		ModuleConfig moduleConfig = getModuleConfig();
+//		if (moduleConfig == null) {
+//			ModuleConfigFactory factory = new ModuleConfigFactory();
+//			moduleConfig = factory.createModuleConfig(getServletContext().getResourceAsStream(oauthConfigFile));
+//			getServletContext().setAttribute(Globals.MODULE_KEY, moduleConfig);
+//		}
+		
+		ModuleConfigFactory factory = new ModuleConfigFactory();
+		ModuleConfig moduleConfig = factory.createModuleConfig(getServletContext().getResourceAsStream(oauthConfigFile));
+		getServletContext().setAttribute(Globals.MODULE_KEY, moduleConfig);
 		
 		return moduleConfig;
 	}
@@ -159,13 +163,17 @@ public class OAuthServlet extends HttpServlet {
 	}
 	
 	private OAuthProcessor initializeProcessor(ModuleConfig moduleConfig) throws ServletException {
-		OAuthProcessor processor = getOAuthProcessor();
-		if (processor == null) {
-			processor = new DefaultOAuthProcessor();
-			
-			processor.init(moduleConfig);
-			getServletContext().setAttribute(Globals.PROCESSOR_KEY, processor);
-		}
+//		OAuthProcessor processor = getOAuthProcessor();
+//		if (processor == null) {
+//			processor = new DefaultOAuthProcessor();
+//			
+//			processor.init(moduleConfig);
+//			getServletContext().setAttribute(Globals.PROCESSOR_KEY, processor);
+//		}
+		
+		OAuthProcessor processor = new DefaultOAuthProcessor();			
+		processor.init(moduleConfig);
+		getServletContext().setAttribute(Globals.PROCESSOR_KEY, processor);
 		
 		return processor;
 	}

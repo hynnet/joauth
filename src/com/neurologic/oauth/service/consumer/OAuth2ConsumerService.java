@@ -33,6 +33,8 @@ import net.oauth.util.OAuth2Util;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.neurologic.oauth.service.response.OAuthResult;
+
 /**
  * @author Bienfait Sindi
  * @since 30 November 2010
@@ -41,43 +43,51 @@ import org.json.JSONObject;
 public abstract class OAuth2ConsumerService extends AbstractOAuthConsumerService<OAuth2Consumer, AccessToken> {
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.AbstractOAuthConsumerService#execute(javax.servlet.http.HttpServletRequest)
+	 * @see com.neurologic.oauth.service.AbstractOAuthConsumerService#executeGet(javax.servlet.http.HttpServletRequest)
 	 */
 	@Override
-	protected final void execute(HttpServletRequest request) throws OAuthException {
+	protected OAuthResult executeGet(HttpServletRequest request) {
 		// TODO Auto-generated method stub
-		AccessToken accessToken = null;
-		Map<String, String> parameterMap = extractParameterMap(request);
-			
-		if (parameterMap.containsKey("error")) {
-			throwOAuthErrorException(parameterMap);
-		}
-		
-		//Process when we received "code" from request parameter.
-		if (parameterMap.containsKey(OAuth2Parameters.CODE)) {
-			if (logger.isInfoEnabled()) {
-				logger.info("\"" + OAuth2Parameters.CODE + "\" received.");
+		try {
+			AccessToken accessToken = null;
+			Map<String, String> parameterMap = extractParameterMap(request);
+				
+			if (parameterMap.containsKey("error")) {
+				throwOAuthErrorException(parameterMap);
 			}
 			
-			accessToken = retrieveAccessTokenViaAuthorizationToken(OAuth2Util.createAuthorizationToken(parameterMap));
-		}
-		
-		//Process when we received "access_token" from request parameter.
-		if (parameterMap.containsKey(OAuth2Parameters.ACCESS_TOKEN)) {
-			if (logger.isInfoEnabled()) {
-				logger.info("\"" + OAuth2Parameters.ACCESS_TOKEN + "\" received.");
+			//Process when we received "code" from request parameter.
+			if (parameterMap.containsKey(OAuth2Parameters.CODE)) {
+				if (logger.isInfoEnabled()) {
+					logger.info("\"" + OAuth2Parameters.CODE + "\" received.");
+				}
+				
+				accessToken = retrieveAccessTokenViaAuthorizationToken(OAuth2Util.createAuthorizationToken(parameterMap));
 			}
 			
-			accessToken = OAuth2Util.createAccessToken(parameterMap);
-		}
-		
-		if (accessToken != null) {
-			if (logger.isInfoEnabled()) {
-				logger.info("Storing access token by calling `saveAccessToken()` method.");
+			//Process when we received "access_token" from request parameter.
+			if (parameterMap.containsKey(OAuth2Parameters.ACCESS_TOKEN)) {
+				if (logger.isInfoEnabled()) {
+					logger.info("\"" + OAuth2Parameters.ACCESS_TOKEN + "\" received.");
+				}
+				
+				accessToken = OAuth2Util.createAccessToken(parameterMap);
 			}
 			
-			saveAccessToken(request, accessToken);
+			if (accessToken != null) {
+				if (logger.isInfoEnabled()) {
+					logger.info("Storing access token by calling `saveAccessToken()` method.");
+				}
+				
+				saveAccessToken(request, accessToken);
+			}
+		} catch (OAuthException e) {
+			// TODO Auto-generated catch block
+			logger.error(e.getLocalizedMessage(), e);
 		}
+		
+		//We don't need to return anything.
+		return null;
 	}
 	
 	/**

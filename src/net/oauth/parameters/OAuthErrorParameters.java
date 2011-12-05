@@ -8,7 +8,7 @@ package net.oauth.parameters;
  * @since 07 October 2011
  *
  */
-public class OAuthErrorParameter extends OAuthParameters {
+public class OAuthErrorParameters extends OAuthParameters {
 
 	/**
 	 * 
@@ -19,7 +19,7 @@ public class OAuthErrorParameter extends OAuthParameters {
 	/**
 	 * 
 	 */
-	public OAuthErrorParameter() {
+	public OAuthErrorParameters() {
 		this(null);
 		// TODO Auto-generated constructor stub
 	}
@@ -27,7 +27,7 @@ public class OAuthErrorParameter extends OAuthParameters {
 	/**
 	 * @param error
 	 */
-	public OAuthErrorParameter(String error) {
+	public OAuthErrorParameters(String error) {
 		super();
 		setError(error);
 	}

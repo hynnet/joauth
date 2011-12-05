@@ -31,7 +31,7 @@ import com.neurologic.oauth.service.provider.manager.OAuth1TokenManager;
 import com.neurologic.oauth.service.request.authentication.HttpAuthorizationChallenger;
 import com.neurologic.oauth.service.request.authentication.OAuth1HttpAuthorizationChallenger;
 import com.neurologic.oauth.service.response.Message;
-import com.neurologic.oauth.service.response.Result;
+import com.neurologic.oauth.service.response.OAuthResult;
 import com.neurologic.oauth.service.response.impl.OAuthMessageResult;
 import com.neurologic.oauth.service.response.impl.StringMessage;
 import com.neurologic.oauth.service.response.impl.UrlEncodedMessage;
@@ -55,23 +55,23 @@ public abstract class OAuth1TokenProviderService extends OAuthTokenProviderServi
 		
 		return null;
 	}
-	
+
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.provider.AbstractOAuthProviderService#execute(javax.servlet.http.HttpServletRequest)
+	 * @see com.neurologic.oauth.service.provider.AbstractOAuthProviderService#executePost(javax.servlet.http.HttpServletRequest)
 	 */
 	@Override
-	protected Result execute(HttpServletRequest request) {
+	protected OAuthResult executePost(HttpServletRequest request) {
 		// TODO Auto-generated method stub
 		OAuthMessageResult result = new OAuthMessageResult();
 		Message message = null;
 		int statusCode = -1;
 		
 		try {
-			validateRequest(request);
+			validateRequest(request, true);
 			
 			//Let's get the Authorization parameters
 			HttpAuthorizationChallenger<OAuth1Parameters> challenger = new OAuth1HttpAuthorizationChallenger();
-			OAuth1Parameters parameters = executeInternal(request, challenger.processChallenge(request.getHeader(HTTP_HEADER_AUTHORIZATION)));
+			OAuth1Parameters parameters = executePostInternal(request, challenger.processChallenge(request.getHeader(HTTP_HEADER_AUTHORIZATION)));
 			message = new UrlEncodedMessage(parameters.getOAuthParameters(), "UTF-8");
 			statusCode = HttpServletResponse.SC_OK;
 		} catch (OAuthException e) {
@@ -93,5 +93,5 @@ public abstract class OAuth1TokenProviderService extends OAuthTokenProviderServi
 		return result;
 	}
 	
-	protected abstract OAuth1Parameters executeInternal(HttpServletRequest request, final OAuth1Parameters authorizationParameters) throws OAuthException;
+	protected abstract OAuth1Parameters executePostInternal(HttpServletRequest request, final OAuth1Parameters authorizationParameters) throws OAuthException;
 }

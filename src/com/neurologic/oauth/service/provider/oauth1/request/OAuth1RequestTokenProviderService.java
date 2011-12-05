@@ -21,10 +21,10 @@ import com.neurologic.oauth.service.provider.oauth1.OAuth1TokenProviderService;
 public class OAuth1RequestTokenProviderService extends OAuth1TokenProviderService {
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.provider.oauth1.OAuth1TokenProviderService#executeInternal(javax.servlet.http.HttpServletRequest, net.oauth.parameters.OAuth1Parameters)
+	 * @see com.neurologic.oauth.service.provider.oauth1.OAuth1TokenProviderService#executePostInternal(javax.servlet.http.HttpServletRequest, net.oauth.parameters.OAuth1Parameters)
 	 */
 	@Override
-	protected OAuth1Parameters executeInternal(HttpServletRequest request, final OAuth1Parameters authorizationParameters) throws OAuthException {
+	protected OAuth1Parameters executePostInternal(HttpServletRequest request, final OAuth1Parameters authorizationParameters) throws OAuthException {
 		// TODO Auto-generated method stub
 		if (!getOauthTokenManager().validateOAuthHeaderParameters(request.getMethod(), serviceProvider.getRequestTokenUrl(), authorizationParameters)) {
 			throw new OAuthAuthorizationException("Cannot verify OAuth Authorization: " + request.getHeader(HTTP_HEADER_AUTHORIZATION));	

@@ -75,7 +75,7 @@ public class OAuth1Util {
 	public static String normalizeParameters(String requestUrl, Map<String, String> parameters) {
 		TreeMap<String, String> treeMap = null;
 		
-		if (parameters instanceof TreeMap<?, ?>) {
+		if (parameters instanceof TreeMap) {
 			treeMap = (TreeMap<String, String>) parameters;
 		} else {
 			treeMap = new TreeMap<String, String>(parameters);

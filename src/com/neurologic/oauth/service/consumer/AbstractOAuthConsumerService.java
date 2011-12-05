@@ -4,21 +4,19 @@
 package com.neurologic.oauth.service.consumer;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import net.oauth.exception.OAuthException;
 
 import org.apache.log4j.Logger;
 
-import com.neurologic.oauth.service.AbstractOAuthService;
+import com.neurologic.oauth.service.AbstractOAuthHttpService;
 import com.neurologic.oauth.service.OAuthConsumerService;
+import com.neurologic.oauth.service.response.OAuthResult;
 
 /**
  * @author Buhake Sindi
  * @since 24 September 2011
  *
  */
-public abstract class AbstractOAuthConsumerService<C, T> extends AbstractOAuthService implements OAuthConsumerService<C, T>  {
+public abstract class AbstractOAuthConsumerService<C, T> extends AbstractOAuthHttpService implements OAuthConsumerService<C, T>  {
 
 	protected final Logger logger = Logger.getLogger(this.getClass());
 	private C consumer;
@@ -40,13 +38,11 @@ public abstract class AbstractOAuthConsumerService<C, T> extends AbstractOAuthSe
 	}
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.AbstractOAuthService#execute(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 * @see com.neurologic.oauth.service.AbstractOAuthHttpService#executePost(javax.servlet.http.HttpServletRequest)
 	 */
 	@Override
-	protected void execute(HttpServletRequest request, HttpServletResponse response) throws Exception {
+	protected OAuthResult executePost(HttpServletRequest request) {
 		// TODO Auto-generated method stub
-		execute(request);
+		throw new UnsupportedOperationException("\"" + request.getMethod() + "\" method not support for Consumer Service.");
 	}
-	
-	protected abstract void execute(HttpServletRequest request) throws OAuthException;
 }

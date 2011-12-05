@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import net.oauth.exception.OAuthException;
 import net.oauth.parameters.OAuth1Parameters;
-import net.oauth.parameters.OAuthErrorParameter;
+import net.oauth.parameters.OAuthErrorParameters;
 import net.oauth.parameters.OAuthParameters;
 import net.oauth.token.oauth1.AuthorizedToken;
 
@@ -19,7 +19,7 @@ import com.neurologic.exception.StoreException;
 import com.neurologic.oauth.service.provider.OAuthRedirectProviderService;
 import com.neurologic.oauth.service.provider.manager.OAuth1TokenManager;
 import com.neurologic.oauth.service.provider.manager.store.data.oauth1.RequestTokenStoreData;
-import com.neurologic.oauth.service.response.Result;
+import com.neurologic.oauth.service.response.OAuthResult;
 import com.neurologic.oauth.service.response.impl.OAuthRedirectResult;
 import com.neurologic.oauth.util.Globals;
 
@@ -48,10 +48,10 @@ public class OAuth1AuthorizationRequestProviderService extends OAuthRedirectProv
 	}
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.provider.AbstractOAuthProviderService#execute(javax.servlet.http.HttpServletRequest)
+	 * @see com.neurologic.oauth.service.provider.AbstractOAuthProviderService#executeGet(javax.servlet.http.HttpServletRequest)
 	 */
 	@Override
-	protected Result execute(HttpServletRequest request) {
+	protected OAuthResult executeGet(HttpServletRequest request) {
 		// TODO Auto-generated method stub
 		String redirectPath = "";
 		OAuthParameters parameters = null;
@@ -133,12 +133,12 @@ public class OAuth1AuthorizationRequestProviderService extends OAuthRedirectProv
 		return parameters;
 	}
 	
-	private OAuthErrorParameter packException(Exception exception) {
+	private OAuthErrorParameters packException(Exception exception) {
 		if (exception == null) {
 			return null;
 		}
 		
-		OAuthErrorParameter errorParameter = new OAuthErrorParameter();
+		OAuthErrorParameters errorParameter = new OAuthErrorParameters();
 		errorParameter.setError(exception.getClass().getName() + ": " + exception.getLocalizedMessage());
 		return errorParameter;
 	}

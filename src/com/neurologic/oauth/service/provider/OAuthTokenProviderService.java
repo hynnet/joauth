@@ -5,13 +5,10 @@ package com.neurologic.oauth.service.provider;
 
 import javax.servlet.http.HttpServletRequest;
 
-import net.oauth.exception.OAuthException;
 import net.oauth.provider.OAuthServiceProvider;
 
-import com.neurologic.exception.OAuthAuthorizationException;
-import com.neurologic.exception.RequestMethodException;
-import com.neurologic.exception.SecureChannelException;
 import com.neurologic.oauth.service.provider.manager.OAuthTokenManager;
+import com.neurologic.oauth.service.response.OAuthResult;
 
 /**
  * @author Buhake Sindi
@@ -30,24 +27,13 @@ public abstract class OAuthTokenProviderService<TM extends OAuthTokenManager, SP
 		// TODO Auto-generated method stub
 		this.serviceProvider = serviceProvider;
 	}
-	
-	/**
-	 * This methods checks if the request received from the client conforms to OAuth protocol.
-	 * 
-	 * @param request
-	 * @throws OAuthException, if the check fails. We need the exception message.
+
+	/* (non-Javadoc)
+	 * @see com.neurologic.oauth.service.AbstractOAuthHttpService#executeGet(javax.servlet.http.HttpServletRequest)
 	 */
-	protected void validateRequest(HttpServletRequest request) throws OAuthException {
-		if (!isSecure(request)) {
-			throw new SecureChannelException("This channel, '" + request.getScheme() + "' is unsecure.");
-		}
-		
-		if (!"POST".equals(request.getMethod())) {
-			throw new RequestMethodException("Cannot execute request with '" + request.getMethod() + "' HTTP method.");
-		}
-		
-		if (request.getHeader(HTTP_HEADER_AUTHORIZATION) == null) {
-			throw new OAuthAuthorizationException("No '" + HTTP_HEADER_AUTHORIZATION + "' header found.");
-		}
+	@Override
+	protected OAuthResult executeGet(HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

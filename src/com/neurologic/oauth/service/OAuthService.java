@@ -25,5 +25,4 @@ package com.neurologic.oauth.service;
 public interface OAuthService extends Service {
 
 	public void setOAuthName(String oauthName);
-	
 }

@@ -13,8 +13,7 @@ import java.util.Map.Entry;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
@@ -115,10 +114,10 @@ public class OAuthRedirectResult extends AbstractOAuthResult {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.response.Result#execute(javax.servlet.ServletRequest, javax.servlet.ServletResponse)
+	 * @see com.neurologic.oauth.service.response.Result#execute(javax.servlet.HttpServletRequest, javax.servlet.HttpServletResponse)
 	 */
 	@Override
-	public void execute(ServletRequest request, ServletResponse response) throws IOException {
+	public void execute(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		// TODO Auto-generated method stub
 		int parameterStartPos = location.indexOf('?', 1);
 		StringBuilder sb = new StringBuilder(location);
@@ -140,14 +139,14 @@ public class OAuthRedirectResult extends AbstractOAuthResult {
 				throw new IOException("ServletException", e);
 			}
 		} else {
-			HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+//			HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 			
 			if (http10Compatible) {
 				//We must do a HTTP 302 Found.
-				httpServletResponse.sendRedirect(httpServletResponse.encodeRedirectURL(location));
+				response.sendRedirect(response.encodeRedirectURL(location));
 			} else {
-				httpServletResponse.setStatus(HttpServletResponse.SC_SEE_OTHER); //HTTP 303
-				httpServletResponse.setHeader(HTTP_LOCATION_HEADER, httpServletResponse.encodeRedirectURL(location));
+				response.setStatus(HttpServletResponse.SC_SEE_OTHER); //HTTP 303
+				response.setHeader(HTTP_LOCATION_HEADER, response.encodeRedirectURL(location));
 			}
 		}
 	}

@@ -3,10 +3,16 @@
  */
 package com.neurologic.oauth.service.response;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
@@ -36,4 +42,15 @@ public abstract class AbstractOAuthResult implements OAuthResult {
 	protected Set<Entry<String, String>> headersEntrySet() {
 		return headers.entrySet();
 	}
+
+	/* (non-Javadoc)
+	 * @see com.neurologic.oauth.service.response.Result#execute(javax.servlet.ServletRequest, javax.servlet.ServletResponse)
+	 */
+	@Override
+	public void execute(ServletRequest request, ServletResponse response) throws IOException {
+		// TODO Auto-generated method stub
+		execute((HttpServletRequest)request, (HttpServletResponse)response);
+	}
+	
+	protected abstract void execute(HttpServletRequest request, HttpServletResponse response) throws IOException;
 }

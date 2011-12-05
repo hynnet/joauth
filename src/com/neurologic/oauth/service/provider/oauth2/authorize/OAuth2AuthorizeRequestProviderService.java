@@ -10,7 +10,7 @@ import net.oauth.parameters.OAuth2Parameters;
 
 import com.neurologic.oauth.service.provider.OAuthRedirectProviderService;
 import com.neurologic.oauth.service.provider.manager.OAuth2TokenManager;
-import com.neurologic.oauth.service.response.Result;
+import com.neurologic.oauth.service.response.OAuthResult;
 import com.neurologic.oauth.util.ExceptionUtil;
 
 /**
@@ -23,13 +23,10 @@ public class OAuth2AuthorizeRequestProviderService extends OAuthRedirectProvider
 	private String errorMessage = "";
 	
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.provider.OAuthRedirectProviderService#execute(javax.servlet.http.HttpServletRequest)
-	 */
-	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.provider.AbstractOAuthProviderService#execute(javax.servlet.http.HttpServletRequest)
+	 * @see com.neurologic.oauth.service.provider.AbstractOAuthProviderService#executeGet(javax.servlet.http.HttpServletRequest)
 	 */
 	@Override
-	protected Result execute(HttpServletRequest request) {
+	protected OAuthResult executeGet(HttpServletRequest request) {
 		// TODO Auto-generated method stub
 		ResponseType responseType = ResponseType.valueOf(request.getParameter(OAuth2Parameters.RESPONSE_TYPE));
 		String clientId = request.getParameter(OAuth2Parameters.CLIENT_ID);

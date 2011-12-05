@@ -18,6 +18,8 @@ package com.neurologic.oauth.service.consumer;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.neurologic.oauth.service.response.OAuthResult;
+
 import net.oauth.consumer.OAuth1Consumer;
 import net.oauth.exception.OAuthException;
 import net.oauth.parameters.OAuth1Parameters;
@@ -37,37 +39,44 @@ import net.oauth.token.oauth1.RequestToken;
 public abstract class OAuth1ConsumerService extends AbstractOAuthConsumerService<OAuth1Consumer, AccessToken> {
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.AbstractOAuthConsumerService#execute(javax.servlet.http.HttpServletRequest)
+	 * @see com.neurologic.oauth.service.AbstractOAuthConsumerService#executeGet(javax.servlet.http.HttpServletRequest)
 	 */
 	@Override
-	protected void execute(HttpServletRequest request) throws OAuthException {
+	protected OAuthResult executeGet(HttpServletRequest request) {
 		// TODO Auto-generated method stub
-		logger.info("execute()");
-		
-		String oauthToken = request.getParameter(OAuth1Parameters.OAUTH_TOKEN);
-		String verifier = request.getParameter(OAuth1Parameters.OAUTH_VERIFIER);
-		
-		if (oauthToken == null && verifier == null) {
-			throw new OAuthException("No OAuth Parameters (" + OAuth1Parameters.OAUTH_TOKEN + ", " + OAuth1Parameters.OAUTH_VERIFIER + ") found.");
-		}
-		
-		RequestToken requestToken = getRequestToken(request);
-		if (requestToken == null) {
-			throw new OAuthException("The request token is needed when requesting access token.");
-		}
-		
-		if (getOAuthSignature() == null) {
-			throw new OAuthException("No OAuth Signature method provided. Please implement the `getOAuthSignature()` method.");
-		}
-		
-		AccessToken accessToken = getConsumer().requestAccessToken(getRealm(), requestToken, new AuthorizedToken(oauthToken, verifier), getOAuthSignature());
-		if (accessToken != null) {
-			if (logger.isInfoEnabled()) {
-				logger.info("Saving Access Token by calling the `saveAccessToken()` method.");
+		try {
+			logger.info("execute()");
+			
+			String oauthToken = request.getParameter(OAuth1Parameters.OAUTH_TOKEN);
+			String verifier = request.getParameter(OAuth1Parameters.OAUTH_VERIFIER);
+			
+			if (oauthToken == null && verifier == null) {
+				throw new OAuthException("No OAuth Parameters (" + OAuth1Parameters.OAUTH_TOKEN + ", " + OAuth1Parameters.OAUTH_VERIFIER + ") found.");
 			}
 			
-			saveAccessToken(request, accessToken);
+			RequestToken requestToken = getRequestToken(request);
+			if (requestToken == null) {
+				throw new OAuthException("The request token is needed when requesting access token.");
+			}
+			
+			if (getOAuthSignature() == null) {
+				throw new OAuthException("No OAuth Signature method provided. Please implement the `getOAuthSignature()` method.");
+			}
+			
+			AccessToken accessToken = getConsumer().requestAccessToken(getRealm(), requestToken, new AuthorizedToken(oauthToken, verifier), getOAuthSignature());
+			if (accessToken != null) {
+				if (logger.isInfoEnabled()) {
+					logger.info("Saving Access Token by calling the `saveAccessToken()` method.");
+				}
+				
+				saveAccessToken(request, accessToken);
+			}
+		} catch (OAuthException e) {
+			// TODO Auto-generated catch block
+			logger.error(e.getLocalizedMessage(), e);
 		}
+		
+		return null;
 	}
 
 	protected abstract String getRealm();
