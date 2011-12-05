@@ -16,7 +16,6 @@
  */
 package com.neurologic.oauth.service.provider.oauth2;
 
-import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -40,7 +39,7 @@ import com.neurologic.oauth.service.provider.OAuthTokenProviderService;
 import com.neurologic.oauth.service.provider.manager.OAuth2TokenManager;
 import com.neurologic.oauth.service.request.authentication.HttpAuthorizationChallenger;
 import com.neurologic.oauth.service.request.authentication.HttpBasicAuthorizationChallenger;
-import com.neurologic.oauth.service.response.Result;
+import com.neurologic.oauth.service.response.OAuthResult;
 import com.neurologic.oauth.service.response.authenticate.WWWAuthenticateResponse;
 import com.neurologic.oauth.service.response.impl.JsonEncodedMessage;
 import com.neurologic.oauth.service.response.impl.OAuthMessageResult;
@@ -51,6 +50,8 @@ import com.neurologic.oauth.service.response.impl.OAuthMessageResult;
  *
  */
 public abstract class OAuth2TokenProviderService extends OAuthTokenProviderService<OAuth2TokenManager, OAuth2ServiceProvider> {
+	
+	private int statusCode;
 	
 	protected OAuth2ErrorParameters toError(OAuth2Error error, String description, String errorUri, String state) {
 		OAuth2ErrorParameters errorParameters = new OAuth2ErrorParameters(error);
@@ -93,28 +94,28 @@ public abstract class OAuth2TokenProviderService extends OAuthTokenProviderServi
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.provider.AbstractOAuthProviderService#execute(javax.servlet.http.HttpServletRequest)
+	 * @see com.neurologic.oauth.service.provider.AbstractOAuthProviderService#executePost(javax.servlet.http.HttpServletRequest)
 	 */
 	@Override
-	protected Result execute(HttpServletRequest request) {
+	protected OAuthResult executePost(HttpServletRequest request) {
 		// TODO Auto-generated method stub
 		OAuthMessageResult result = new OAuthMessageResult();
 		OAuthParameters parameters = null;
-		int statusCode;
 		
 		try {
-			validateRequest(request);
+			validateRequest(request, true);
 			
 			//Let's get the Authorization parameters
 			HttpAuthorizationChallenger<String[]> challenge = new HttpBasicAuthorizationChallenger();
 			String[] credentials = challenge.processChallenge(request.getHeader(HTTP_HEADER_AUTHORIZATION));
 			
-			Credential credential = new Credential(credentials[0], credentials[1]);
-			if (!getOauthTokenManager().validateCredentials(credential.getClientId(), credential.getClientSecret())) {
-				throw new OAuthAuthorizationException("Invalid authorization credentials");
+			String clientId = credentials[0];
+			String clientSecret = credentials[1];
+			if (!getOauthTokenManager().validateCredentials(clientId, clientSecret)) {
+				throw new OAuthAuthorizationException("Invalid authorization credentials.");
 			}
 			
-			parameters = executeInternal(requestParameterMap(request), credential);
+			parameters = executePostInternal(requestParameterMap(request), clientId);
 			statusCode = HttpServletResponse.SC_OK;
 		} catch (OAuthException e) {
 			// TODO Auto-generated catch block
@@ -130,7 +131,7 @@ public abstract class OAuth2TokenProviderService extends OAuthTokenProviderServi
 				}
 			}
 			
-			parameters = toError(error, e.getMessage(), null, request.getParameter(OAuth2Parameters.STATE));
+			parameters = toError(error, e.getLocalizedMessage(), null, request.getParameter(OAuth2Parameters.STATE));
 		}
 		
 		result.setStatusCode(statusCode);
@@ -149,39 +150,43 @@ public abstract class OAuth2TokenProviderService extends OAuthTokenProviderServi
 		return result;
 	}
 	
-	protected abstract OAuthParameters executeInternal(Map<String, String> requestParameters, final Credential credential);
-	
-	protected static final class Credential implements Serializable {
-		
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -6596523602416504101L;
-		private String clientId;
-		private String clientSecret;
-		
-		/**
-		 * @param clientId
-		 * @param clientSecret
-		 */
-		private Credential(String clientId, String clientSecret) {
-			super();
-			this.clientId = clientId;
-			this.clientSecret = clientSecret;
-		}
-
-		/**
-		 * @return the clientId
-		 */
-		public final String getClientId() {
-			return clientId;
-		}
-
-		/**
-		 * @return the clientSecret
-		 */
-		public final String getClientSecret() {
-			return clientSecret;
-		}
+	protected void setStatusCode(int statusCode) {
+		this.statusCode = statusCode;
 	}
+	
+	protected abstract OAuthParameters executePostInternal(Map<String, String> requestParameters, final String clientId);
+	
+//	protected static final class Credential implements Serializable {
+//		
+//		/**
+//		 * 
+//		 */
+//		private static final long serialVersionUID = -6596523602416504101L;
+//		private String clientId;
+//		private String clientSecret;
+//		
+//		/**
+//		 * @param clientId
+//		 * @param clientSecret
+//		 */
+//		private Credential(String clientId, String clientSecret) {
+//			super();
+//			this.clientId = clientId;
+//			this.clientSecret = clientSecret;
+//		}
+//
+//		/**
+//		 * @return the clientId
+//		 */
+//		public final String getClientId() {
+//			return clientId;
+//		}
+//
+//		/**
+//		 * @return the clientSecret
+//		 */
+//		public final String getClientSecret() {
+//			return clientSecret;
+//		}
+//	}
 }

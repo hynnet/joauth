@@ -16,18 +16,14 @@
  */
 package com.neurologic.oauth.service;
 
-
-
-
 /**
  * @author Buhake Sindi
  * @since 30 June 2011
- *
+ * 
  */
 public interface OAuthProviderService extends OAuthService {
 
 	public static final String HTTP_HEADER_AUTHORIZATION = "Authorization";
-//	public void setOAuthServiceProvider(T serviceProvider);
-//	public void setOauthTokenManager(T oauthTokenManager);
-	
+	// public void setOAuthServiceProvider(T serviceProvider);
+	// public void setOauthTokenManager(T oauthTokenManager);
 }

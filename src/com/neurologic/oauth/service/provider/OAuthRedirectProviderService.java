@@ -10,6 +10,7 @@ import com.neurologic.oauth.config.LoginRedirectConfig;
 import com.neurologic.oauth.config.ModuleConfig;
 import com.neurologic.oauth.config.ServiceConfig;
 import com.neurologic.oauth.service.provider.manager.OAuthTokenManager;
+import com.neurologic.oauth.service.response.OAuthResult;
 import com.neurologic.oauth.util.Globals;
 
 /**
@@ -33,5 +34,14 @@ public abstract class OAuthRedirectProviderService<TM extends OAuthTokenManager>
 		ServiceConfig serviceConfig = moduleConfig.getServiceConfigByPath(request.getPathInfo());
 		ErrorRedirectConfig errorRedirectConfig = serviceConfig.getErrorRedirectConfig();
 		return errorRedirectConfig.getPath();	
+	}
+
+	/* (non-Javadoc)
+	 * @see com.neurologic.oauth.service.provider.AbstractOAuthProviderService#executePost(javax.servlet.http.HttpServletRequest)
+	 */
+	@Override
+	protected OAuthResult executePost(HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("\"" + request.getMethod() + "\" method not support for OAuth Redirect call.");
 	}
 }

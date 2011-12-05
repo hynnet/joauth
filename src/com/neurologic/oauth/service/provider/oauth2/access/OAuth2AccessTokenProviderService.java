@@ -23,10 +23,10 @@ import com.neurologic.oauth.service.provider.oauth2.OAuth2TokenProviderService;
 public class OAuth2AccessTokenProviderService extends OAuth2TokenProviderService {
 
 	/* (non-Javadoc)
-	 * @see com.neurologic.oauth.service.provider.oauth2.OAuth2TokenProviderService#executeInternal(java.util.Map, com.neurologic.oauth.service.provider.oauth2.OAuth2TokenProviderService.Credential)
+	 * @see com.neurologic.oauth.service.provider.oauth2.OAuth2TokenProviderService#executePostInternal(java.util.Map, java.lang.String)
 	 */
 	@Override
-	protected OAuthParameters executeInternal(final Map<String, String> requestParameters, final Credential credential) {
+	protected OAuthParameters executePostInternal(final Map<String, String> requestParameters, final String clientId) {
 		// TODO Auto-generated method stub
 		String scope = requestParameters.get(OAuth2Parameters.SCOPE);
 		String state = requestParameters.get(OAuth2Parameters.STATE);
@@ -59,7 +59,7 @@ public class OAuth2AccessTokenProviderService extends OAuth2TokenProviderService
 		}
  		
 		try {
-			AccessToken accessToken = getOauthTokenManager().createAccessToken(credential.getClientId(), code, redirectUri, scope, state);
+			AccessToken accessToken = getOauthTokenManager().createAccessToken(clientId, code, redirectUri, scope, state);
 			OAuth2Parameters parameters = new OAuth2Parameters();
 			parameters.setAccessToken(accessToken.getAccessToken());
 			parameters.setTokenType(accessToken.getTokenType().toString());

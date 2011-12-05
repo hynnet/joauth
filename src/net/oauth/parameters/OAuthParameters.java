@@ -12,7 +12,7 @@ import java.util.Map;
  * @since 06 October 2011
  *
  */
-public class OAuthParameters implements Serializable {
+public abstract class OAuthParameters implements Serializable {
 
 	/**
 	 * 
@@ -71,6 +71,6 @@ public class OAuthParameters implements Serializable {
 	 */
 	@Override
 	public String toString() {
-		return "OAuthParameters [parameterMap=" + parameterMap + "]";
+		return this.getClass().getName() + " [parameterMap=" + parameterMap + "]";
 	}
 }
