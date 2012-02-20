@@ -20,10 +20,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.apache.log4j.Logger;
 
 import com.neurologic.oauth.config.ConsumerConfig;
 import com.neurologic.oauth.config.ManagerConfig;
@@ -32,7 +32,7 @@ import com.neurologic.oauth.config.OAuthConfig;
 import com.neurologic.oauth.config.ProviderConfig;
 import com.neurologic.oauth.config.ServiceConfig;
 import com.neurologic.oauth.config.SuccessConfig;
-import com.neurologic.oauth.service.OAuthService;
+import com.neurologic.oauth.service.Service;
 import com.neurologic.oauth.service.factory.OAuthServiceAbstractFactory;
 
 /**
@@ -40,13 +40,10 @@ import com.neurologic.oauth.service.factory.OAuthServiceAbstractFactory;
  * @since 23 November 2010
  *
  */
-public class DefaultOAuthProcessor implements OAuthProcessor {
+public class HttpRequestOAuthProcessor extends GenericOAuthProcessor {
 
-	private static final Logger logger = Logger.getLogger(DefaultOAuthProcessor.class);
-	//This is where the module config.
-	private ModuleConfig moduleConfig;
 	//This is where we keep all our created services.
-	private Map<String, OAuthService> services = new LinkedHashMap<String, OAuthService>();
+	private Map<String, Service> services = new LinkedHashMap<String, Service>();
 
 	/* (non-Javadoc)
 	 * @see com.neurologic.oauth.processor.OAuthProcessor#init(com.neurologic.oauth.config.ModuleConfig)
@@ -54,9 +51,7 @@ public class DefaultOAuthProcessor implements OAuthProcessor {
 	@Override
 	public void init(ModuleConfig moduleConfig) {
 		// TODO Auto-generated method stub
-		if (this.moduleConfig == null) {
-			this.moduleConfig = moduleConfig;
-		}
+		super.init(moduleConfig);
 		
 		synchronized (services) {
 			services.clear();
@@ -69,25 +64,33 @@ public class DefaultOAuthProcessor implements OAuthProcessor {
 	@Override
 	public void destroy() {
 		// TODO Auto-generated method stub
-		moduleConfig = null;
+		super.destroy();
 		synchronized (services) {
 			services.clear();
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.neurologic.oauth.processor.OAuthProcessor#process(javax.servlet.ServletRequest, javax.servlet.ServletResponse)
+	 */
 	@Override
+	public void process(ServletRequest request, ServletResponse response) throws Exception {
+		// TODO Auto-generated method stub
+		process((HttpServletRequest)request, (HttpServletResponse)response);
+	}
+
 	public void process(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		String path = request.getPathInfo();
 		if (logger.isDebugEnabled()) {
 			logger.debug("Retrieved path info \"" + path + "\".");
 		}
 		
-		ServiceConfig serviceConfig = moduleConfig.getServiceConfigByPath(path);
+		ServiceConfig serviceConfig = getModuleConfig().getServiceConfigByPath(path);
 		if (serviceConfig == null) {
 			throw new Exception("No <service> defined for path='" + path + "'.");
 		}
 		
-		OAuthService service = createOAuthService(serviceConfig);
+		Service service = createOAuthService(serviceConfig);
 		
 		//execute the service.
 		service.execute(request, response);
@@ -104,8 +107,8 @@ public class DefaultOAuthProcessor implements OAuthProcessor {
 		}
 	}
 	
-	private OAuthService createOAuthService(ServiceConfig serviceConfig) throws Exception {
-		OAuthService service = null;
+	private Service createOAuthService(ServiceConfig serviceConfig) throws Exception {
+		Service service = null;
 		synchronized (services) {
 			service = services.get(serviceConfig.getPath());
 		}
@@ -125,7 +128,7 @@ public class DefaultOAuthProcessor implements OAuthProcessor {
 				throw new Exception("No service reference OAuth is defined.");
 			}
 			
-			OAuthConfig oauthConfig = moduleConfig.getOAuthConfigByName(serviceConfig.getRefOAuth());
+			OAuthConfig oauthConfig = getModuleConfig().getOAuthConfigByName(serviceConfig.getRefOAuth());
 			if (oauthConfig == null) {
 				throw new Exception("No <oauth> defined with name='" + serviceConfig.getRefOAuth() + "'.");
 			}

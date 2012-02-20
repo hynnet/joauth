@@ -3,6 +3,7 @@
  */
 package com.neurologic.oauth.service.provider.manager;
 
+import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
@@ -442,6 +443,9 @@ public class OAuth1TokenManager extends AbstractOAuthTokenManager {
 		} catch (StoreException e) {
 			// TODO Auto-generated catch block
 			throw new OAuthAuthorizationException("Store Exception: " + e.getLocalizedMessage(), e);
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			throw new OAuthAuthorizationException("URI Syntax Exception: " + e.getLocalizedMessage(), e);
 		}
 	}
 	

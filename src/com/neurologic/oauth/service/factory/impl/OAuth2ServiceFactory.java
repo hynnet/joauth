@@ -30,7 +30,7 @@ import com.neurologic.oauth.util.ApplicationUtil;
  * @since 06 December 2010
  *
  */
-public class OAuth2ServiceFactory extends AbstactOAuthServiceFactory<OAuth2ServiceProvider, OAuth2TokenManager, OAuth2Consumer> {
+public class OAuth2ServiceFactory extends AbstractOAuthServiceFactory<OAuth2ServiceProvider, OAuth2TokenManager, OAuth2Consumer> {
 
 	/* (non-Javadoc)
 	 * @see com.neurologic.oauth.service.factory.impl.AbstactOAuthServiceFactory#createOAuthServiceProvider(com.neurologic.oauth.config.ProviderConfig, java.lang.String)

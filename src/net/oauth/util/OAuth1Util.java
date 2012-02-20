@@ -16,6 +16,8 @@
  */
 package net.oauth.util;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -41,7 +43,7 @@ public class OAuth1Util {
 		return Long.toString(System.nanoTime());
 	}
 	
-	public static String getSignatureBaseString(String httpRequestMethod, String requestUrl, Map<String, String> oauthParameters) {
+	public static String getSignatureBaseString(String httpRequestMethod, String requestUrl, Map<String, String> oauthParameters) throws URISyntaxException {
 		//Must remove first, "oauth_signature"
 		if (oauthParameters != null && oauthParameters.containsKey(OAuth1Parameters.OAUTH_SIGNATURE)) {
 			oauthParameters.remove(OAuth1Parameters.OAUTH_SIGNATURE);
@@ -50,26 +52,47 @@ public class OAuth1Util {
 		return encode(httpRequestMethod.toUpperCase()) + "&" + encode(normalizeUrl(requestUrl)) + "&" + encode(normalizeParameters(requestUrl, oauthParameters));
 	}
 	
-	public static String normalizeUrl(String url) {
-		int questionMarkIndex = url.indexOf('?');
-		if (questionMarkIndex > -1) {
-			url = url.substring(0, questionMarkIndex);
+	public static String normalizeUrl(String url) throws URISyntaxException {
+//		int questionMarkIndex = url.indexOf('?');
+//		if (questionMarkIndex > -1) {
+//			url = url.substring(0, questionMarkIndex);
+//		}
+//		
+//		int forwardSlashIndex = url.indexOf('/', 8);
+//		if (forwardSlashIndex > -1) {
+//			int colonIndex = url.lastIndexOf(':', forwardSlashIndex);
+//			
+//			if (colonIndex > -1) {
+//				String port = url.substring(colonIndex, forwardSlashIndex);
+//				if ((url.startsWith("http://") && (port.equals(":80") || port.equals(":8080"))) ||
+//					(url.startsWith("https://") && port.equals(":443"))) {
+//					url = url.substring(0, colonIndex) +  url.substring(colonIndex + port.length());
+//				}
+//			}
+//		}
+//		
+//		return url.toLowerCase();
+		
+		URI uri = new URI(url);
+		String scheme = uri.getScheme().toLowerCase();
+		String authority = uri.getAuthority().toLowerCase();
+		int port = uri.getPort();
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append(scheme)
+		  .append("://")
+		  .append(authority);
+		
+		//Port
+		if (port != -1 &&
+			(("http".equals(scheme) && 80 != port) ||
+			 ("https".equals(scheme) && 443 != port))) {
+			sb.append(":").append(port);
 		}
 		
-		int forwardSlashIndex = url.indexOf('/', 8);
-		if (forwardSlashIndex > -1) {
-			int colonIndex = url.lastIndexOf(':', forwardSlashIndex);
-			
-			if (colonIndex > -1) {
-				String port = url.substring(colonIndex, forwardSlashIndex);
-				if ((url.startsWith("http://") && (port.equals(":80") || port.equals(":8080"))) ||
-					(url.startsWith("https://") && port.equals(":443"))) {
-					url = url.substring(0, colonIndex) +  url.substring(colonIndex + port.length());
-				}
-			}
-		}
-		
-		return url.toLowerCase();
+		//Path
+		sb.append(uri.getPath());
+		return sb.toString();
 	}
 	
 	public static String normalizeParameters(String requestUrl, Map<String, String> parameters) {
