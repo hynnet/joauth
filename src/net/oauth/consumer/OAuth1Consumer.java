@@ -19,6 +19,7 @@ package net.oauth.consumer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
@@ -146,8 +147,12 @@ public class OAuth1Consumer extends OAuthConsumer<OAuth1ServiceProvider> {
 			// TODO Auto-generated catch block
 			logger.error("Http Exception: ", e);
 			throw new OAuthException(e);
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			logger.error("URI Syntax Exception: ", e);
+			throw new OAuthException(e);
 		} /*finally {
-			if (client != null) {
+				if (client != null) {
 				client.close();
 			}
 		}*/
@@ -253,8 +258,11 @@ public class OAuth1Consumer extends OAuthConsumer<OAuth1ServiceProvider> {
 		} catch (HttpException e) {
 			// TODO Auto-generated catch block
 			throw new OAuthException(e.getLocalizedMessage(), e);
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			throw new OAuthException(e.getLocalizedMessage(), e);
 		} /*finally {
-			if (client != null) {
+				if (client != null) {
 				client.close();
 			}
 		}*/

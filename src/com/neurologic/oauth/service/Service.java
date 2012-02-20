@@ -13,5 +13,6 @@ import javax.servlet.ServletResponse;
  */
 public interface Service {
 
+	public void setOAuthName(String oauthName);
 	public void execute(ServletRequest request, ServletResponse response) throws Exception;
 }

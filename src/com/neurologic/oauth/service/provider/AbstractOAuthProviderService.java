@@ -12,7 +12,7 @@ import org.apache.log4j.Logger;
 import com.neurologic.exception.OAuthAuthorizationException;
 import com.neurologic.exception.RequestMethodException;
 import com.neurologic.exception.SecureChannelException;
-import com.neurologic.oauth.service.AbstractOAuthHttpService;
+import com.neurologic.oauth.service.OAuthHttpService;
 import com.neurologic.oauth.service.OAuthProviderService;
 import com.neurologic.oauth.service.provider.manager.OAuthTokenManager;
 import com.neurologic.oauth.service.provider.manager.OAuthTokenManagerRepository;
@@ -22,7 +22,7 @@ import com.neurologic.oauth.service.provider.manager.OAuthTokenManagerRepository
  * @since 01 September 2011
  *
  */
-public abstract class AbstractOAuthProviderService<TM extends OAuthTokenManager> extends AbstractOAuthHttpService implements OAuthProviderService {
+public abstract class AbstractOAuthProviderService<TM extends OAuthTokenManager> extends OAuthHttpService implements OAuthProviderService {
 
 	protected final Logger logger = Logger.getLogger(this.getClass());
 //	private TM oauthTokenManager;

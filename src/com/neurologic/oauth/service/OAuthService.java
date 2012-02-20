@@ -22,6 +22,7 @@ package com.neurologic.oauth.service;
  * @since 27 June 2011
  *
  */
+@Deprecated
 public interface OAuthService extends Service {
 
 	public void setOAuthName(String oauthName);

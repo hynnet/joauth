@@ -12,7 +12,7 @@ import com.neurologic.oauth.config.ManagerConfig;
 import com.neurologic.oauth.config.ProviderConfig;
 import com.neurologic.oauth.service.OAuthConsumerService;
 import com.neurologic.oauth.service.OAuthProviderService;
-import com.neurologic.oauth.service.OAuthService;
+import com.neurologic.oauth.service.Service;
 import com.neurologic.oauth.service.factory.OAuthServiceFactory;
 import com.neurologic.oauth.service.provider.OAuthTokenProviderService;
 import com.neurologic.oauth.service.provider.manager.OAuthTokenManager;
@@ -24,7 +24,7 @@ import com.neurologic.oauth.util.ApplicationUtil;
  * @since 15 September 2011
  *
  */
-public abstract class AbstactOAuthServiceFactory<SP extends OAuthServiceProvider, T extends OAuthTokenManager, C> implements OAuthServiceFactory {
+public abstract class AbstractOAuthServiceFactory<SP extends OAuthServiceProvider, T extends OAuthTokenManager, C> implements OAuthServiceFactory {
 
 	protected final Logger logger = Logger.getLogger(this.getClass());
 	
@@ -33,7 +33,7 @@ public abstract class AbstactOAuthServiceFactory<SP extends OAuthServiceProvider
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public OAuthService createOAuthProviderService(String oauthName, String serviceClassName, ProviderConfig providerConfig, ManagerConfig managerConfig) throws Exception {
+	public Service createOAuthProviderService(String oauthName, String serviceClassName, ProviderConfig providerConfig, ManagerConfig managerConfig) throws Exception {
 		// TODO Auto-generated method stub
 		Class<?> serviceClass = ApplicationUtil.applicationClass(serviceClassName);
 		if (serviceClass == null) {
@@ -64,7 +64,7 @@ public abstract class AbstactOAuthServiceFactory<SP extends OAuthServiceProvider
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public OAuthService createOAuthConsumerService(String oauthName, String serviceClassName, ProviderConfig providerConfig, ConsumerConfig consumerConfig) throws Exception {
+	public Service createOAuthConsumerService(String oauthName, String serviceClassName, ProviderConfig providerConfig, ConsumerConfig consumerConfig) throws Exception {
 		// TODO Auto-generated method stub
 		Class<?> serviceClass = ApplicationUtil.applicationClass(serviceClassName);
 		if (serviceClass == null) {

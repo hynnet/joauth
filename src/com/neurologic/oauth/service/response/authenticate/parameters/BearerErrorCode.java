@@ -30,7 +30,7 @@ public enum BearerErrorCode {
 	/**
 	 * @return the statusCode
 	 */
-	public int getStatusCode() {
+	public final int getStatusCode() {
 		return statusCode;
 	}
 	

@@ -23,13 +23,12 @@ import net.oauth.util.OAuth1Util;
  * @since 20 November 2010
  *
  */
-public class RequestToken extends OAuthToken {
+public class RequestToken extends TokenSecretBasedToken {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -5435052772260977531L;
-	private String tokenSecret;
 	private boolean oauthCallbackConfirmed;
 	
 	/**
@@ -39,17 +38,9 @@ public class RequestToken extends OAuthToken {
 	 * @param oauthCallbackConfirmed
 	 */
 	public RequestToken(String token, String tokenSecret, boolean oauthCallbackConfirmed) {
-		super(token);
+		super(token, tokenSecret);
 		// TODO Auto-generated constructor stub
-		this.tokenSecret = tokenSecret;
 		this.oauthCallbackConfirmed = oauthCallbackConfirmed;
-	}
-
-	/**
-	 * @return the tokenSecret
-	 */
-	public String getTokenSecret() {
-		return tokenSecret;
 	}
 
 	/**

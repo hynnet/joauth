@@ -39,7 +39,7 @@ import com.neurologic.oauth.util.ApplicationUtil;
  * @since 06 December 2010
  *
  */
-public class OAuth1ServiceFactory extends AbstactOAuthServiceFactory<OAuth1ServiceProvider, OAuth1TokenManager, OAuth1Consumer> {
+public class OAuth1ServiceFactory extends AbstractOAuthServiceFactory<OAuth1ServiceProvider, OAuth1TokenManager, OAuth1Consumer> {
 
 	/* (non-Javadoc)
 	 * @see com.neurologic.oauth.service.factory.impl.AbstactOAuthServiceFactory#createOAuthServiceProvider(com.neurologic.oauth.config.ProviderConfig, java.lang.String)

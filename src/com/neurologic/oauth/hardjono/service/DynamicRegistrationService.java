@@ -41,7 +41,8 @@ public abstract class DynamicRegistrationService extends AbstractOAuthProviderSe
 	@Override
 	protected OAuthResult executeGet(HttpServletRequest request) {
 		// TODO Auto-generated method stub
-		//Must do Discovery here....
+		//FIXME: Do Discovery
+		return null;
 	}
 
 	/* (non-Javadoc)
@@ -59,7 +60,7 @@ public abstract class DynamicRegistrationService extends AbstractOAuthProviderSe
 			
 			String contentType = request.getHeader("Content-Type");
 			if (contentType == null || !contentType.startsWith(CONTENT_TYPE_JSON)) {
-				throw new OAuthException("Invalid Content-Type '" + contentType + "' (REQUIRED: " + CONTENT_TYPE_JSON + ").");
+				throw new OAuthException("Invalid Content-Type '" + contentType + "' (REQUIRED: " + CONTENT_TYPE_JSON + "').");
 			}
 			
 			JSONObject requestJson = new JSONObject(readContentBody(request));
@@ -71,7 +72,7 @@ public abstract class DynamicRegistrationService extends AbstractOAuthProviderSe
 			} else if ("pull".equals(type)) {
 				parameters = doPull(clientUrl);
 			} else {
-				throw new OAuthException("Invalid type '" + type + "'");
+				throw new OAuthException("Invalid type '" + type + "'.");
 			}
 			
 			statusCode = HttpServletResponse.SC_OK;

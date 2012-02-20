@@ -18,18 +18,18 @@ package com.neurologic.oauth.servlet;
 
 import java.io.IOException;
 
+import javax.servlet.GenericServlet;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.UnavailableException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
 import com.neurologic.oauth.config.ModuleConfig;
 import com.neurologic.oauth.config.ModuleConfigFactory;
-import com.neurologic.oauth.processor.DefaultOAuthProcessor;
 import com.neurologic.oauth.processor.OAuthProcessor;
+import com.neurologic.oauth.processor.OAuthProcessorFactory;
 import com.neurologic.oauth.util.Globals;
 
 /**
@@ -37,7 +37,7 @@ import com.neurologic.oauth.util.Globals;
  * @since 23 November 2010
  *
  */
-public class OAuthServlet extends HttpServlet {
+public class OAuthServlet extends GenericServlet {
 	
 	private static final Logger logger = Logger.getLogger(OAuthServlet.class);
 	private String oauthConfigFile = "/WEB-INF/oauth-config.xml"; 
@@ -100,29 +100,16 @@ public class OAuthServlet extends HttpServlet {
 	}
 
 	/* (non-Javadoc)
-	 * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 * @see javax.servlet.GenericServlet#service(javax.servlet.ServletRequest, javax.servlet.ServletResponse)
 	 */
 	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	public void service(ServletRequest request, ServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		process(req, resp);
-	}
-
-	/* (non-Javadoc)
-	 * @see javax.servlet.http.HttpServlet#doPost(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-	 */
-	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		process(req, resp);
-	}
-	
-	private void process(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		if (logger.isInfoEnabled()) {
-			logger.info("process() via the " + request.getMethod() + " method.");
+			logger.info("service() from protocol " + request.getProtocol() + ".");
 		}
 		
-		try {	
+		try {
 			OAuthProcessor processor = getOAuthProcessor();
 			if (processor == null) {
 				ModuleConfig moduleConfig = getModuleConfig();
@@ -130,7 +117,7 @@ public class OAuthServlet extends HttpServlet {
 					moduleConfig = initializeModuleConfig(oauthConfigFile);
 				}
 				
-				processor = initializeProcessor(moduleConfig);
+				processor = initializeProcessor(request, moduleConfig);
 			}
 			
 			//Now, we process
@@ -162,7 +149,7 @@ public class OAuthServlet extends HttpServlet {
 		return (ModuleConfig) getServletContext().getAttribute(Globals.MODULE_KEY);
 	}
 	
-	private OAuthProcessor initializeProcessor(ModuleConfig moduleConfig) throws ServletException {
+	private OAuthProcessor initializeProcessor(ServletRequest request, ModuleConfig moduleConfig) throws ServletException {
 //		OAuthProcessor processor = getOAuthProcessor();
 //		if (processor == null) {
 //			processor = new DefaultOAuthProcessor();
@@ -171,7 +158,11 @@ public class OAuthServlet extends HttpServlet {
 //			getServletContext().setAttribute(Globals.PROCESSOR_KEY, processor);
 //		}
 		
-		OAuthProcessor processor = new DefaultOAuthProcessor();			
+		OAuthProcessor processor = OAuthProcessorFactory.createOAuthProcessor(request.getProtocol());
+		if (processor == null) {
+			throw new ServletException("No OAuth Processor defined for protocol '" + request.getProtocol() + "'.");
+		}
+		
 		processor.init(moduleConfig);
 		getServletContext().setAttribute(Globals.PROCESSOR_KEY, processor);
 		

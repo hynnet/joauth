@@ -3,6 +3,7 @@
  */
 package net.oauth.authorization;
 
+import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -72,6 +73,9 @@ public class OAuth1ProtectedResourceAuthorization implements OAuthProtectedResou
 			
 			return OAuth1Util.getQueryString(parameterMap, new HeaderKeyValuePair());
 		} catch (GeneralSecurityException e) {
+			// TODO Auto-generated catch block
+			throw new OAuthAuthorizationException(e);
+		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			throw new OAuthAuthorizationException(e);
 		}

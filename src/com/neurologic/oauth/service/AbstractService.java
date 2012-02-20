@@ -11,7 +11,7 @@ package com.neurologic.oauth.service;
  * @since 24 September 2011
  *
  */
-public abstract class AbstractOAuthService implements OAuthService {
+public abstract class AbstractService implements Service {
 
 	private String oauthName;
 	private boolean nameSet;
