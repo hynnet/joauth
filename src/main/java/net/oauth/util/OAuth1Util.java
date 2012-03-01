@@ -146,7 +146,7 @@ public class OAuth1Util {
 			sortedParameters.put(entry.getKey(), sortedArray);
 		}
 		
-		return HttpUtil.toQueryString(sortedParameters);
+		return HttpUtil.toParameterQueryString(sortedParameters);
 	}
 	
 	public static String toQueryString(String realm, OAuth1Parameters parameters, KeyValuePair kvp) {

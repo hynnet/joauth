@@ -27,7 +27,6 @@ import net.oauth.signature.impl.OAuthHmacSha1Signature;
 import net.oauth.signature.impl.OAuthPlainTextSignature;
 import net.oauth.signature.impl.OAuthRsaSha1Signature;
 import net.oauth.token.oauth1.AccessToken;
-import net.oauth.token.oauth1.AuthorizedToken;
 import net.oauth.token.oauth1.RequestToken;
 
 import org.apache.log4j.Logger;
@@ -84,7 +83,7 @@ public abstract class OAuth1Service implements OAuthService<OAuth1Consumer, Acce
 			throw new OAuthException("No OAuth Signature method provided. Please implement the `getOAuthSignature()` method.");
 		}
 		
-		AccessToken accessToken = getConsumer().requestAccessToken(getRealm(), requestToken, new AuthorizedToken(oauthToken, verifier), getOAuthSignature());
+		AccessToken accessToken = getConsumer().requestAccessToken(getRealm(), requestToken, verifier, getOAuthSignature());
 		if (accessToken != null) {
 			if (logger.isInfoEnabled()) {
 				logger.info("Saving Access Token by calling the `saveAccessToken()` method.");

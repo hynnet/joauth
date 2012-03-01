@@ -20,12 +20,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.oauth.browser.BrowserManager;
 import net.oauth.exception.OAuthException;
-import net.oauth.http.HttpClient;
 import net.oauth.http.HttpUtil;
 import net.oauth.http.exception.HttpException;
 import net.oauth.parameters.HeaderKeyValuePair;
@@ -34,11 +35,8 @@ import net.oauth.provider.OAuth1ServiceProvider;
 import net.oauth.signature.ConsumerSecretBasedOAuthSignature;
 import net.oauth.signature.OAuthSignature;
 import net.oauth.token.oauth1.AccessToken;
-import net.oauth.token.oauth1.AuthorizedToken;
 import net.oauth.token.oauth1.RequestToken;
 import net.oauth.util.OAuth1Util;
-
-import org.apache.log4j.Logger;
 
 
 /**
@@ -48,7 +46,6 @@ import org.apache.log4j.Logger;
  */
 public class OAuth1Consumer extends OAuthConsumer<OAuth1ServiceProvider> {
 
-	private static final Logger logger = Logger.getLogger(OAuth1Consumer.class);
 	private static final String ERROR_NO_SERVICE_PROVIDER = "No OAuth Service Provider has been provided. Call \"setServiceProvider()\" method to assign an OAuth Service Provider.";
 	private static final String ERROR_NO_SIGNATURE = "No OAuth Signature (HMAC-SHA1, RSA-SHA1, PLAINTEXT) method provided.";
 	private static final String HTTP_HEADER_AUTHORIZATION = "Authorization";
@@ -71,11 +68,34 @@ public class OAuth1Consumer extends OAuthConsumer<OAuth1ServiceProvider> {
 	 */
 	public OAuth1Consumer(String consumerKey, String consumerSecret, OAuth1ServiceProvider serviceProvider) {
 		super(serviceProvider);
+		
+		if (consumerKey == null || consumerKey.isEmpty()) {
+			throw new IllegalArgumentException("No consumer key provided.");
+		}
+		
+		if (consumerSecret == null || consumerSecret.isEmpty()) {
+			throw new IllegalArgumentException("No consumer secret provided.");
+		}
+		
 		this.consumerKey = consumerKey;
 		this.consumerSecret = consumerSecret;
 	}
 	
-	public RequestToken requestUnauthorizedToken(String realm, String callbackUrl, Map<String, String[]> additionalParameters, OAuthSignature signature) throws OAuthException {
+	/**
+	 * The core engine for OAuth authorization token request. This method creates an RFC 5849 request to the service provider for a token.
+	 *  
+	 * @param url
+	 * @param realm
+	 * @param requestToken
+	 * @param requestTokenSecret
+	 * @param verifier
+	 * @param callbackUrl
+	 * @param additionalParameters
+	 * @param signature
+	 * @return
+	 * @throws OAuthException
+	 */
+	private Map<String, String> createOAuthTokenResponse(String url, String realm, String requestToken, String requestTokenSecret, String verifier, String callbackUrl, Map<String, String[]> additionalParameters, OAuthSignature signature) throws OAuthException {
 		if (getClient() == null) {
 			throw new OAuthException("HttpClient is required.");
 		}
@@ -90,37 +110,39 @@ public class OAuth1Consumer extends OAuthConsumer<OAuth1ServiceProvider> {
 		
 		if (signature instanceof ConsumerSecretBasedOAuthSignature) {
 			((ConsumerSecretBasedOAuthSignature)signature).setConsumerSecret(consumerSecret);
+			((ConsumerSecretBasedOAuthSignature)signature).setTokenSecret(requestTokenSecret);
 		}
 		
-		RequestToken requestToken = null;
-		String requestTokenUrl = getServiceProvider().getRequestTokenUrl();
-		String httpRequestMethod = "POST";
-		HttpClient client = getClient();
-		
+		Map<String, String> responseMap = null;
 		try {
-			long timestamp = OAuth1Util.getTimestamp();
+			final String httpRequestMethod = "POST";
 			OAuth1Parameters oauthParameters = new OAuth1Parameters();
 			oauthParameters.setOAuthConsumerKey(consumerKey);
 			oauthParameters.setOAuthNonce(OAuth1Util.getNONCE());
 			oauthParameters.setOAuthSignatureMethod(signature.getOAuthSignatureMethod());
-			oauthParameters.setOAuthTimestamp(Long.toString(timestamp));
+			oauthParameters.setOAuthTimestamp(Long.toString(OAuth1Util.getTimestamp()));
 			oauthParameters.setOAuthVersion(OAuth1ServiceProvider.PROTOCOL_VERSION);
 			if (callbackUrl != null && !callbackUrl.isEmpty()) {
 				oauthParameters.setOAuthCallback(callbackUrl);
 			}
 			
-			String baseString = OAuth1Util.generateSignatureBaseString(httpRequestMethod, requestTokenUrl, oauthParameters, additionalParameters);
+			String baseString = OAuth1Util.generateSignatureBaseString(httpRequestMethod, url, oauthParameters, additionalParameters);
+			if (logger.isDebugEnabled()) {
+				logger.debug("OAuth Base String: " + baseString);
+			}
+			
 			oauthParameters.setOAuthSignature(signature.sign(baseString));
-			client.addRequestHeader(HTTP_HEADER_AUTHORIZATION, "OAuth " + OAuth1Util.toQueryString(realm, oauthParameters, new HeaderKeyValuePair()));
-			String data = streamToString(client.connect(httpRequestMethod, requestTokenUrl));
-			if (client.getStatusCode() != 200) {
-				throw new OAuthException("HTTP/1.0 " + client.getStatusCode() + " " + client.getStatusReason() + "\n" + data);
+			getClient().addRequestHeader(HTTP_HEADER_AUTHORIZATION, "OAuth " + OAuth1Util.toQueryString(realm, oauthParameters, new HeaderKeyValuePair()));
+			String data = streamToString(getClient().connect(httpRequestMethod, url));
+			if (getClient().getResponseHeaderValue("Content-Type").contains("application/x-www-form-urlencoded")) {
+				data = URLDecoder.decode(data, "UTF-8");
+			}
+			
+			if (getClient().getStatusCode() != 200) {
+				throw new OAuthException("HTTP/1.0 " + getClient().getStatusCode() + " " + getClient().getStatusReason() + "\n" + data);
 			}
 
-			Map<String, String> responseMap = generateToken(data);
-			if (responseMap != null) {
-				requestToken = new RequestToken(responseMap.get(OAuth1Parameters.OAUTH_TOKEN), responseMap.get(OAuth1Parameters.OAUTH_TOKEN_SECRET), Boolean.valueOf(responseMap.get(OAuth1Parameters.OAUTH_CALLBACK_CONFIRMED)));
-			}
+			responseMap = generateToken(data);
 		} catch (GeneralSecurityException e) {
 			// TODO Auto-generated catch block
 			logger.error("Security Exception: ", e);
@@ -137,15 +159,35 @@ public class OAuth1Consumer extends OAuthConsumer<OAuth1ServiceProvider> {
 			// TODO Auto-generated catch block
 			logger.error("URI Syntax Exception: ", e);
 			throw new OAuthException(e);
-		} /*finally {
-				if (client != null) {
-				client.close();
-			}
-		}*/
+		}
 		
-		return requestToken;
+		return responseMap;
+		
 	}
 	
+	/**
+	 * This method returns an unauthorized {@link RequestToken}.
+	 * @param realm
+	 * @param callbackUrl
+	 * @param additionalParameters
+	 * @param signature
+	 * @return
+	 * @throws OAuthException
+	 */
+	public RequestToken requestUnauthorizedToken(String realm, String callbackUrl, Map<String, String[]> additionalParameters, OAuthSignature signature) throws OAuthException {
+		
+		Map<String, String> responseMap = createOAuthTokenResponse(getServiceProvider().getRequestTokenUrl(), realm, null, null, null, callbackUrl, additionalParameters, signature);
+		return new RequestToken(responseMap.get(OAuth1Parameters.OAUTH_TOKEN), responseMap.get(OAuth1Parameters.OAUTH_TOKEN_SECRET), Boolean.valueOf(responseMap.get(OAuth1Parameters.OAUTH_CALLBACK_CONFIRMED)));
+	}
+	
+	/**
+	 * Generates an OAuth Authorization String (which the client will need to paste to their browser or use {@link BrowserManager} to browser.
+	 * 
+	 * @param requestToken
+	 * @param additionalParameters
+	 * @return
+	 * @throws OAuthException
+	 */
 	public String createOAuthUserAuthorizationUrl(RequestToken requestToken, Map<String, String[]> additionalParameters) throws OAuthException {
 		if (requestToken == null) {
 			throw new OAuthException("No Request Token provided.");
@@ -168,86 +210,44 @@ public class OAuth1Consumer extends OAuthConsumer<OAuth1ServiceProvider> {
 		}
 		
 		String oauthAuthorizeUrl = getServiceProvider().getAuthorizationUrl();	
-		return oauthAuthorizeUrl + ((oauthAuthorizeUrl.indexOf('?') > -1) ? "&" : "?") + HttpUtil.toQueryString(additionalParameters);
+		return oauthAuthorizeUrl + ((oauthAuthorizeUrl.indexOf('?') > -1) ? "&" : "?") + HttpUtil.toParameterQueryString(additionalParameters);
 	}
 	
-	public AccessToken requestAccessToken(String realm, RequestToken requestToken, AuthorizedToken authorizedToken, OAuthSignature signature) throws OAuthException {
-		if (getClient() == null) {
-			throw new OAuthException("HttpClient is required.");
-		}
-		
-		if (getServiceProvider() == null) {
-			throw new OAuthException(ERROR_NO_SERVICE_PROVIDER);
-		}
+	/**
+	 * This method requests for an {@link AccessToken}/
+	 * @param realm
+	 * @param requestToken
+	 * @param verifier
+	 * @param signature
+	 * @return
+	 * @throws OAuthException
+	 */
+	public AccessToken requestAccessToken(String realm, RequestToken requestToken, String verifier, OAuthSignature signature) throws OAuthException {
+		return requestAccessToken(realm, requestToken, verifier, null, signature);
+	}
+	
+	/**
+	 * This method requests for an {@link AccessToken} (with an additional HTTP parameters).
+	 * @param realm
+	 * @param requestToken
+	 * @param verifier
+	 * @param additionalParameters - HTTP parameters.
+	 * @param signature
+	 * @return
+	 * @throws OAuthException
+	 */
+	public AccessToken requestAccessToken(String realm, RequestToken requestToken, String verifier, Map<String, String[]> additionalParameters, OAuthSignature signature) throws OAuthException {
 		
 		if (requestToken == null) {
 			throw new OAuthException("No Request Token provided.");
 		}
 		
-		if (authorizedToken == null) {
-			throw new OAuthException("No Authorized Token provided.");
+		if (verifier == null || verifier.isEmpty()) {
+			throw new OAuthException("No " + OAuth1Parameters.OAUTH_VERIFIER + " provided.");
 		}
 		
-		if (!requestToken.getToken().equals(authorizedToken.getToken())) {
-			throw new OAuthException("Request Token and Authorized token don't match! (" + requestToken.getToken() + " != " + authorizedToken.getToken() + ")");
-		}
-		
-		if (signature == null) {
-			throw new OAuthException(ERROR_NO_SIGNATURE);
-		}
-		
-		if (signature instanceof ConsumerSecretBasedOAuthSignature) {
-			((ConsumerSecretBasedOAuthSignature)signature).setConsumerSecret(consumerSecret);
-			((ConsumerSecretBasedOAuthSignature)signature).setTokenSecret(requestToken.getTokenSecret());
-		}
-		
-		AccessToken accessToken = null;
-		HttpClient client = getClient();
-		String accessTokenUrl = getServiceProvider().getAccessTokenUrl();
-		String httpRequestMethod = "POST";
-		
-		try {
-			long timestamp = OAuth1Util.getTimestamp();
-			OAuth1Parameters oauthParameters = new OAuth1Parameters();
-			oauthParameters.setOAuthConsumerKey(consumerKey);
-			oauthParameters.setOAuthNonce(OAuth1Util.getNONCE());
-			oauthParameters.setOAuthSignatureMethod(signature.getOAuthSignatureMethod());
-			oauthParameters.setOAuthTimestamp(Long.toString(timestamp));
-			oauthParameters.setOAuthToken(requestToken.getToken());
-			oauthParameters.setOAuthVersion(OAuth1ServiceProvider.PROTOCOL_VERSION);
-			oauthParameters.setOAuthVerifier(authorizedToken.getVerifier());
-			
-			String baseString = OAuth1Util.generateSignatureBaseString(httpRequestMethod, accessTokenUrl, oauthParameters, null);
-			oauthParameters.setOAuthSignature(signature.sign(baseString));
-			client.addRequestHeader(HTTP_HEADER_AUTHORIZATION, "OAuth " + OAuth1Util.toQueryString(realm, oauthParameters, new HeaderKeyValuePair()));
-			String data = streamToString(client.connect(httpRequestMethod, accessTokenUrl));
-			if (client.getStatusCode() != 200) {
-				throw new OAuthException("HTTP/1.0 " + client.getStatusCode() + " " + client.getStatusReason() + "\n" + data);
-			}
-
-			Map<String, String> responseMap = generateToken(data);
-			if (responseMap != null) {
-				accessToken = new AccessToken(responseMap.remove(OAuth1Parameters.OAUTH_TOKEN), responseMap.remove(OAuth1Parameters.OAUTH_TOKEN_SECRET), responseMap);
-			}
-		} catch (GeneralSecurityException e) {
-			// TODO Auto-generated catch block
-			throw new OAuthException(e.getLocalizedMessage(), e);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			throw new OAuthException(e.getLocalizedMessage(), e);
-		} catch (HttpException e) {
-			// TODO Auto-generated catch block
-			throw new OAuthException(e.getLocalizedMessage(), e);
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			throw new OAuthException(e.getLocalizedMessage(), e);
-		} /*finally {
-				if (client != null) {
-				client.close();
-			}
-		}*/
-		
-		return accessToken;
+		Map<String, String> responseMap = createOAuthTokenResponse(getServiceProvider().getAccessTokenUrl(), realm, requestToken.getToken(), requestToken.getTokenSecret(), verifier, null, additionalParameters, signature);
+		return new AccessToken(responseMap.remove(OAuth1Parameters.OAUTH_TOKEN), responseMap.remove(OAuth1Parameters.OAUTH_TOKEN_SECRET), responseMap);
 	}
 	
 	private String streamToString(InputStream inputStream) throws IOException {
