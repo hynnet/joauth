@@ -22,7 +22,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -40,7 +39,7 @@ import net.oauth.http.exception.HttpException;
  */
 public class DefaultHttpClient extends AbstractHttpClient {
 
-	private URLConnection urlConnection;
+	private HttpURLConnection urlConnection;
 	
 	/**
 	 * 
@@ -56,8 +55,8 @@ public class DefaultHttpClient extends AbstractHttpClient {
 	@Override
 	public int getStatusCode() throws IOException {
 		// TODO Auto-generated method stub
-		if (urlConnection != null && urlConnection instanceof HttpURLConnection) {
-			return ((HttpURLConnection)urlConnection).getResponseCode();
+		if (urlConnection != null) {
+			return urlConnection.getResponseCode();
 		}
 		
 		return -1;
@@ -69,11 +68,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
 	@Override
 	public String getStatusReason() throws IOException {
 		// TODO Auto-generated method stub
-		if (urlConnection instanceof HttpURLConnection) {
-			return ((HttpURLConnection)urlConnection).getResponseMessage();
-		}
-		
-		return null;
+		return urlConnection.getResponseMessage();
 	}
 
 	/* (non-Javadoc)
@@ -92,7 +87,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
 			url = url.substring(0, questionMarkPos);
 		}
 		
-		String queryString = HttpUtil.toQueryString(parameterMap);
+		String queryString = HttpUtil.toParameterQueryString(parameterMap);
 		OutputStream output = null;
 		
 		try {
@@ -106,25 +101,26 @@ public class DefaultHttpClient extends AbstractHttpClient {
 				addRequestHeader("Content-Length", Integer.toString(queryString.getBytes("UTF-8").length));
 			}
 			
-			urlConnection = new URL(s).openConnection();
+			urlConnection = (HttpURLConnection) new URL(s).openConnection();
+			urlConnection.setRequestMethod(requestMethod);
 			urlConnection.setDoInput(true);
 			populateRequestProperty();
 			
 			if ("POST".equals(requestMethod)) {
-				if (urlConnection instanceof HttpURLConnection) {
-					((HttpURLConnection)urlConnection).setRequestMethod(requestMethod);
-				}
 				urlConnection.setDoOutput(true);
 				output = urlConnection.getOutputStream();
 				output.write(queryString.getBytes("UTF-8"));
 				output.flush();
 			}
 			
-			InputStream input = urlConnection.getInputStream();
-			populateResponseHeaders();
-			if (getStatusCode() != 200 && urlConnection instanceof HttpURLConnection) {
-				input = ((HttpURLConnection)urlConnection).getErrorStream();
+			InputStream input = null;
+			try {
+				input = urlConnection.getInputStream();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				input = urlConnection.getErrorStream();
 			}
+			populateResponseHeaders();
 			
 			return input;
 		} catch (MalformedURLException e) {
@@ -151,8 +147,8 @@ public class DefaultHttpClient extends AbstractHttpClient {
 	@Override
 	public void close() {
 		// TODO Auto-generated method stub
-		if (urlConnection != null && urlConnection instanceof HttpURLConnection) {
-			((HttpURLConnection)urlConnection).disconnect();
+		if (urlConnection != null ) {
+			urlConnection.disconnect();
 			urlConnection = null;
 		}
 	}

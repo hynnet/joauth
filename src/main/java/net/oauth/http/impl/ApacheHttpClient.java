@@ -152,7 +152,7 @@ public class ApacheHttpClient extends AbstractHttpClient {
 	}
 	
 	private HttpGet createHttpGet(String url) {
-		String queryString = HttpUtil.toQueryString(parameterMap);
+		String queryString = HttpUtil.toParameterQueryString(parameterMap);
 		return new HttpGet(url + "?" + queryString);
 	}
 	

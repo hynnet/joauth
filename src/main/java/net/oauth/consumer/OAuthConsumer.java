@@ -3,7 +3,10 @@
  */
 package net.oauth.consumer;
 
+import org.apache.log4j.Logger;
+
 import net.oauth.http.HttpClient;
+import net.oauth.http.impl.DefaultHttpClient;
 import net.oauth.provider.OAuthServiceProvider;
 
 
@@ -14,6 +17,7 @@ import net.oauth.provider.OAuthServiceProvider;
  */
 public abstract class OAuthConsumer<T extends OAuthServiceProvider> {
 
+	protected final Logger logger = Logger.getLogger(this.getClass());
 	private HttpClient client;
 	private T serviceProvider;
 	
@@ -21,7 +25,7 @@ public abstract class OAuthConsumer<T extends OAuthServiceProvider> {
 	 * @param serviceProvider
 	 */
 	protected OAuthConsumer(T serviceProvider) {
-		this(null, serviceProvider);
+		this(new DefaultHttpClient(), serviceProvider);
 	}
 
 	/**

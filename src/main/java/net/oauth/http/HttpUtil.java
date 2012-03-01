@@ -61,9 +61,9 @@ public class HttpUtil {
 		return Collections.unmodifiableMap(httpParameters);
 	}
 	
-	public static String toQueryString(Map<String, String[]> httpParameters) {
+	public static String toParameterQueryString(Map<String, String[]> httpParameters) {
 		if (httpParameters == null) {
-			return null;
+			return "";
 		}
 		
 		StringBuilder sb = new StringBuilder();
@@ -73,7 +73,7 @@ public class HttpUtil {
 					sb.append("&");
 				}
 				
-				sb.append(entry.getKey()).append("\"=").append(value).append("\"");
+				sb.append(entry.getKey()).append("=").append(value).append("");
 			}
 		}
 		
