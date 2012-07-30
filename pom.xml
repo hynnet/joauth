@@ -5,6 +5,7 @@
   <version>1.3.1-SNAPSHOT</version>
   <name>JOAuth</name>
   <description>A fully implemented Oauth 1 (RFC5849) and OAuth 2 Draft 23 client library.</description>
+  <url>http://code.google.com/p/joauth/</url>
   
   <developers>
 		<developer>
@@ -15,6 +16,19 @@
 			</roles>
 		</developer>
 	</developers>
+	
+	<licenses>
+    	<license>
+      		<name>The Apache Software License, Version 2.0</name>
+      		<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      		<distribution>repo</distribution>
+    	</license>
+	</licenses>
+	
+	<scm>
+		<connection>scm:hg:http://joauth.googlecode.com/hg/</connection>
+		<developerConnection>scm:https://joauth.googlecode.com/hg/</developerConnection>
+	</scm>
 
 	<dependencies>
 		<dependency>
